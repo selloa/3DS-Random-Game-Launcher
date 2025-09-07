@@ -46,7 +46,7 @@ The application uses the 3DS Application Manager (AM) service to:
 - Homebrew Launcher access
 
 ### Quick Install
-1. Download the latest release from the [Releases page](https://github.com/einso/3ds-randomtitlepicker/releases)
+1. Download the latest release from the [Releases page](https://github.com/einso/3DS-Random-Game-Launcher/releases)
 2. Extract the `.3dsx` file to your SD card in the `/3ds/` directory
 3. Launch the Homebrew Launcher and run "Random Title Picker"
 
@@ -83,8 +83,8 @@ Due to devkitPro compatibility issues with modern Ubuntu versions in GitHub Acti
 **Build Steps:**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/einso/3ds-randomtitlepicker.git
-   cd 3ds-randomtitlepicker
+   git clone https://github.com/einso/3DS-Random-Game-Launcher.git
+   cd 3DS-Random-Game-Launcher
    ```
 
 2. Build the application:
@@ -207,7 +207,7 @@ This project is open source. Please check the original repository for licensing 
 
 ## 🔗 Links
 
-- [Original Repository](https://github.com/einso/3ds-randomtitlepicker)
+- [Original Repository](https://github.com/einso/3DS-Random-Game-Launcher)
 - [DevKitPro 3DS Examples](https://github.com/devkitPro/3ds-examples/tree/master/app_launch)
 - [DevKitPro Website](https://devkitpro.org/)
 - [3DS Homebrew Guide](https://3ds.hacks.guide/)
