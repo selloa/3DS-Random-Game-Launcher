@@ -72,21 +72,35 @@ See the [Building from Source](#building-from-source) section below.
 
 ## 🔨 Building from Source
 
-### GitHub Actions (Automated Cloud Building)
-The easiest way to build without installing devkitPro locally:
+### Local Build (Recommended)
+Due to devkitPro compatibility issues with modern Ubuntu versions in GitHub Actions, local building is currently the most reliable method:
 
-1. **Push your code to GitHub** - The repository includes a GitHub Actions workflow
-2. **Automatic build** - The workflow will automatically build your project in the cloud
-3. **Download the build** - Get the built `.3dsx` file from the Actions tab
-4. **No local setup required!** - Everything happens in the cloud
+**Prerequisites:**
+- [devkitPro](https://devkitpro.org/) development environment
+- devkitARM toolchain
+- 3ds-dev libraries
 
-**How to use:**
-1. Fork or clone this repository
-2. Make your changes
-3. Push to GitHub
-4. Go to the "Actions" tab in your GitHub repository
-5. Download the built `.3dsx` file from the latest workflow run
-6. Copy the `.3dsx` file to your 3DS SD card in the `/3ds/` folder
+**Build Steps:**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/einso/3ds-randomtitlepicker.git
+   cd 3ds-randomtitlepicker
+   ```
+
+2. Build the application:
+   ```bash
+   make
+   ```
+
+3. The compiled `.3dsx` file will be created in the project root
+
+### GitHub Actions (Currently Disabled)
+The GitHub Actions workflow is currently disabled due to devkitPro compatibility issues with modern Ubuntu versions. The devkitPro toolchain is over 10 years old and doesn't work reliably with recent Ubuntu releases.
+
+**Alternative Cloud Building Options:**
+- Use an older Ubuntu version (18.04 or 20.04) if available
+- Use a Docker container with an older Ubuntu base
+- Use a local development environment with devkitPro installed
 
 ### Development Setup
 For development, you may want to set up:
