@@ -30,6 +30,18 @@ Stick the `.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher.
 
 The `3dsxlauncher_loader-1.1/` directory contains tools from [Rinnegatamante's 3dsxlauncher_loader](https://github.com/Rinnegatamante/3dsxlauncher_loader) for building CIA forwarders. **Note: While the tools themselves are functional, the current CIA file generation process in the Makefile is still buggy and needs work.** The existing CIA files in `releases/cia/` were built manually, can be installed, but ultimately don't run yet.
 
+## Game Database Sources
+
+The title database (`source/title_database.c`) contains **4,135+ 3DS game entries** with title IDs and names. Data was sourced from the comprehensive [3dsdb community database](https://3dsdb.com/) via multiple methods:
+
+- **3dsdb API**: `https://api.ghseshop.cc` (base games, virtual console, DSiWare)
+- **3dsdb GitHub**: `https://raw.githubusercontent.com/hax0kartik/3dsdb/master/jsons` (regional data)
+- **3dsdb XML**: `https://3dsdb.com/xml.php` (complete database export)
+
+The database includes games from all regions (USA, EUR, JPN) with both English and original Japanese/Chinese titles. Scripts in the `scripts/` directory can be used to update the database with the latest entries.
+
+**Note for developers**: The `title_database.c` file might be interesting for other 3DS homebrew projects that need a complete list of all title names with their corresponding title IDs.
+
 ## The story
 
 Started as a basic proof-of-concept by [einso](https://github.com/einso) - solid foundation but needed some love. Most of the heavy lifting here was done by AI (Claude/GPT) because let's be real, parsing 3DS title databases and handling all the edge cases is tedious as hell.
