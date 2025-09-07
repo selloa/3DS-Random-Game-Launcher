@@ -15,13 +15,14 @@ jobs:
     
     - name: Setup devkitPro
       run: |
-        # Install devkitPro using the official method
+        # Install devkitPro using the official installation script
         sudo apt-get update
-        sudo apt-get install -y wget gnupg2
-        wget -qO - https://pkg.devkitpro.org/devkitpro-keyring.gpg | sudo tee /usr/share/keyrings/devkitpro-keyring.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://pkg.devkitpro.org/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
-        sudo apt-get update
-        sudo apt-get install -y 3ds-dev
+        sudo apt-get install -y wget curl
+        wget https://apt.devkitpro.org/install-devkitpro-pacman
+        chmod +x install-devkitpro-pacman
+        sudo ./install-devkitpro-pacman
+        sudo dkp-pacman -Syu --noconfirm
+        sudo dkp-pacman -S --noconfirm 3ds-dev
     
     - name: Build project
       run: make
