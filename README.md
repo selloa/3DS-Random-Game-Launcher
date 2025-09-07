@@ -13,6 +13,10 @@ Scans your SD card, filters out system junk, and launches a random game. Simple 
 
 ## Building
 
+**Dependencies:**
+- [devkitPro](https://devkitpro.org/) with devkitARM
+- 3ds-dev libraries
+
 You know the drill:
 ```bash
 git clone https://github.com/selloa/3DS-Random-Game-Launcher.git
@@ -33,7 +37,7 @@ The original was functional but rough around the edges. This version adds proper
 This thing has potential. Some ideas for whoever wants to take it further:
 
 - **GUI overhaul** - The text interface works but a proper UI would be sick
-- **Game names** - Show actual titles instead of just IDs
+- **Game names** - Show actual titles with covers in a carousel instead of just text
 - **Icons** - Display game artwork
 - **Favorites/blacklist** - Let users customize what gets picked
 - **Categories** - Filter by genre
