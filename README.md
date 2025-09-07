@@ -26,6 +26,23 @@ make
 
 Stick the `.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher.
 
+## Installation
+
+### Option 1: CIA Installation (Recommended)
+
+#### For Older Firmware (1.0.0 - 4.4.x)
+1. Install `releases/cia/3DS-Random-Game-Launcher-Compatible.cia` using FBI
+2. Copy the `releases/payload/pl-compatible` folder to the root of your SD card
+3. Launch from your home menu like any other game
+
+#### For Newer Firmware (4.5.0+)
+1. Install `releases/cia/3DS-Random-Game-Launcher.cia` using FBI
+2. Copy the `releases/payload/pl` folder to the root of your SD card
+3. Launch from your home menu like any other game
+
+### Option 2: 3DSX Installation
+Place the `.3dsx` file in `/3ds/` on your SD card and launch from Homebrew Launcher.
+
 ## The story
 
 Started as a basic proof-of-concept by [einso](https://github.com/einso) - solid foundation but needed some love. Most of the heavy lifting here was done by AI (Claude/GPT) because let's be real, parsing 3DS title databases and handling all the edge cases is tedious as hell.
