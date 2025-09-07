@@ -1,0 +1,32 @@
+name: Build 3DS Homebrew
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup devkitPro
+      uses: devkitPro/setup-devkitpro@v1
+      with:
+        install-devkitpro: true
+        install-3ds: true
+    
+    - name: Build project
+      run: make
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: 3ds-randomtitlepicker-build
+        path: |
+          *.3dsx
+          *.elf
+          *.smdh
