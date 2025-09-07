@@ -11,7 +11,20 @@ Scans your SD card, filters out system junk, and launches a random game. Simple 
 - `Y` - Reroll for something else
 - `START` - Exit
 
-## Building
+## Download (For Users)
+
+**Don't want to build? Just download and play!**
+
+1. **Click the "Releases" link** on the right side of this page (or go to https://github.com/selloa/3DS-Random-Game-Launcher/releases)
+2. **Download the latest release** - look for the `.3dsx` file (that's what you need)
+3. **Copy the `.3dsx` file** to your 3DS SD card in the `/3ds/` folder
+4. **Launch from Homebrew Launcher** on your 3DS
+
+**That's it!** No building required. The `.3dsx` file is ready to run.
+
+*Note: If you see CIA files in releases, those are for advanced users who want to install the app directly to their 3DS home menu.*
+
+## Building (For Developers)
 
 **Dependencies:**
 - [devkitPro](https://devkitpro.org/) with devkitARM
