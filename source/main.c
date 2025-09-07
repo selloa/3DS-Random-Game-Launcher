@@ -3,6 +3,7 @@
 #include <string.h>
 #include <3ds.h>
 #include <time.h>
+#include "title_database.h"
 
 int main()
 {
@@ -49,7 +50,15 @@ randomPicker:
 		}
 	}
 
-	printf("Press A to chainload this random titleID:\n%016llx\n\n", randomTitle);
+	// Look up the game name
+	const char* gameName = lookup_game_name(randomTitle);
+	
+	if (gameName != NULL) {
+		printf("Press A to launch:\n%s\n", gameName);
+		printf("Title ID: %016llx\n\n", randomTitle);
+	} else {
+		printf("Press A to chainload this random titleID:\n%016llx\n\n", randomTitle);
+	}
 	printf("Press Y to reroll.\n\n");
 
 	while (aptMainLoop())
