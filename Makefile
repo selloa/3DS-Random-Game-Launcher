@@ -38,9 +38,9 @@ DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
-APP_TITLE	:= Random Title Picker
-APP_DESCRIPTION	:= Picks a random title to launch from your SD card.
-APP_AUTHOR	:= devkitpro devs, forked by einso
+APP_TITLE	:= 3DS Random Game Launcher
+APP_DESCRIPTION	:= Launch a random game from your library
+APP_AUTHOR	:= selloa (2025)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
