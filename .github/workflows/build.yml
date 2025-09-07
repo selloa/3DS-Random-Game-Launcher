@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y wget gnupg2
         wget -qO - https://pkg.devkitpro.org/devkitpro-keyring.gpg | sudo tee /usr/share/keyrings/devkitpro-keyring.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://pkg.devkitpro.org/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
+        echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://pkg.devkitpro.org/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
         sudo apt-get update
         sudo apt-get install -y 3ds-dev
     
