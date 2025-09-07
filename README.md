@@ -26,6 +26,10 @@ make
 
 Stick the `.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher.
 
+### CIA Building Tools
+
+The `3dsxlauncher_loader-1.1/` directory contains tools from [Rinnegatamante's 3dsxlauncher_loader](https://github.com/Rinnegatamante/3dsxlauncher_loader) for building CIA forwarders. **Note: While the tools themselves are functional, the current CIA file generation process in the Makefile is still buggy and needs work.** The existing CIA files in `releases/cia/` were built manually, can be installed, but ultimately don't run yet.
+
 ## Installation
 
 ### Option 1: CIA Installation (Recommended)
