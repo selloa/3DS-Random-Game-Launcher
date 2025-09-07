@@ -79,9 +79,11 @@ The codebase is clean and well-commented. Perfect for someone to jump in and add
 ## Credits
 
 - **einso** - Original concept and implementation
-- **DevKitPro team** - For the 3ds-examples that made this possible
+- **DevKitPro team** - For the 3ds-examples that made this possible (app_launch template)
 - **AI assistants** - Did most of the boring parsing and error handling work
 - **3DS homebrew community** - For keeping the scene alive
+
+**Note**: This project uses code from the [devkitPro 3ds-examples app_launch template](https://github.com/devkitPro/3ds-examples/blob/master/app_launch/source/main.c) under MIT license.
 
 ## License
 
