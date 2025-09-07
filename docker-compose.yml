@@ -1,9 +1,0 @@
-version: '3.8'
-
-services:
-  3ds-build:
-    build: .
-    volumes:
-      - .:/workspace
-    working_dir: /workspace
-    command: make
