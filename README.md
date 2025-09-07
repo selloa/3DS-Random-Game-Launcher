@@ -53,7 +53,8 @@ The original was functional but rough around the edges. This version adds proper
 This thing has potential. Some ideas for whoever wants to take it further:
 
 - **GUI overhaul** - The text interface works but a proper UI would be sick
-- **Game names** - Show actual titles with covers in a carousel instead of just text
+- **CIA compilation** - Provide CIA Files with each release
+- **Game carousel** - Show actual titles with covers in a carousel instead of just text
 - **Icons** - Display game artwork
 - **Favorites/blacklist** - Let users customize what gets picked
 - **Categories** - Filter by genre
