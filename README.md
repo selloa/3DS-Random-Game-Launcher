@@ -22,8 +22,6 @@ Scans your SD card, filters out system junk, and launches a random game. Simple 
 
 **That's it!** No building required. The `.3dsx` file is ready to run.
 
-*Note: If you see CIA files in releases, those are for advanced users who want to install the app directly to their 3DS home menu.*
-
 ## Building (For Developers)
 
 **Dependencies:**
@@ -39,9 +37,12 @@ make
 
 Stick the `.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher.
 
-### CIA Building Tools
+### Debug Build
 
-The `3dsxlauncher_loader-1.1/` directory contains tools from [Rinnegatamante's 3dsxlauncher_loader](https://github.com/Rinnegatamante/3dsxlauncher_loader) for building CIA forwarders. **Note: While the tools themselves are functional, the current CIA file generation process in the Makefile is still buggy and needs work.** The existing CIA files in `releases/cia/` were built manually, can be installed, but ultimately don't run yet.
+For development and testing, you can build a debug version with additional logging:
+```bash
+make DEBUG=1
+```
 
 ## Game Database Sources
 
@@ -66,7 +67,7 @@ The original was functional but rough around the edges. This version adds proper
 This thing has potential. Some ideas for whoever wants to take it further:
 
 - **GUI overhaul** - The text interface works but a proper UI would be sick
-- **CIA compilation** - Provide CIA Files with each release
+- **Better packaging** - Improved distribution and installation
 - **Game carousel** - Show actual titles with covers in a carousel instead of just text
 - **Icons** - Display game artwork
 - **Favorites/blacklist** - Let users customize what gets picked
