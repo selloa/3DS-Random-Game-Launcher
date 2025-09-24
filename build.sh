@@ -14,6 +14,8 @@ case "$1" in
             echo "- Verbose debug output"
             echo "- Additional title information"
             echo "- No optimization for easier debugging"
+            echo ""
+            echo "Output files are in the dist/ directory with incremental naming."
         else
             echo ""
             echo "DEBUG build failed!"
@@ -27,6 +29,8 @@ case "$1" in
             echo ""
             echo "RELEASE build completed successfully!"
             echo "Optimized for performance and smaller size."
+            echo ""
+            echo "Output files are in the dist/ directory with incremental naming."
         else
             echo ""
             echo "RELEASE build failed!"
@@ -38,13 +42,26 @@ case "$1" in
         make clean
         echo "Clean completed."
         ;;
+    "list")
+        echo "Listing available builds..."
+        if [ -d "dist" ]; then
+            echo ""
+            echo "Available builds in dist/:"
+            ls -la dist/*.3dsx 2>/dev/null || echo "No builds found in dist/ directory."
+        else
+            echo "No dist/ directory found."
+        fi
+        ;;
     *)
-        echo "Usage: ./build.sh [debug|release|clean]"
+        echo "Usage: ./build.sh [debug|release|clean|list]"
         echo ""
         echo "debug   - Build with debug features enabled"
         echo "release - Build optimized release version"
-        echo "clean   - Clean build files"
+        echo "clean   - Clean build files and dist directory"
+        echo "list    - List available builds in dist/ directory"
         echo ""
         echo "If no parameter is provided, this help is shown."
+        echo ""
+        echo "Builds are automatically numbered and saved to dist/ directory."
         ;;
 esac

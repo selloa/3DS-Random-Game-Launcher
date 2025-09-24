@@ -1,64 +1,29 @@
-# Build outputs
+# Build artifacts
 build/
+dist/
+*.o
+*.d
+*.map
+*.lst
+
+# Build number tracking
+.build_number
+
+# Generated files
 *.3dsx
 *.elf
 *.smdh
-*.map
 
-# Object files
-*.o
-*.d
-
-# Generated graphics files
-*.t3x
-*.t3x.h
-*.shbin
-*.shbin.h
-
-# Binary data files
-*_bin.h
-
-# IDE and editor files
+# IDE files
 .vscode/
-.idea/
 *.swp
 *.swo
 *~
+
+# OS files
 .DS_Store
 Thumbs.db
 
 # Temporary files
 *.tmp
 *.temp
-*.log
-
-# Backup files
-*.bak
-*.backup
-*~
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Development tools
-*.orig
-*.rej
-
-# Package managers (if any are added later)
-node_modules/
-package-lock.json
-yarn.lock
-
-# Documentation build (if added later)
-docs/_build/
-site/
-
-# Test outputs (if tests are added)
-test_results/
-*.test

@@ -41,6 +41,12 @@ GFXBUILD	:=	$(BUILD)
 APP_TITLE	:= 3DS Random Game Launcher
 APP_DESCRIPTION	:= Launch a random game from your library
 APP_AUTHOR	:= selloa (2025)
+
+# Incremental build support
+BUILD_NUMBER := $(shell if [ -f .build_number ]; then cat .build_number; else echo 1; fi)
+OUTPUT_DIR := dist
+DEBUG_SUFFIX := $(if $(DEBUG),-debug,)
+TARGET_NAME := $(TARGET)$(DEBUG_SUFFIX)-v$(BUILD_NUMBER)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
@@ -142,7 +148,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-export _3DSXDEPS	:=	$(if $(NO_SMDH),,$(OUTPUT).smdh)
+export _3DSXDEPS	:=	$(if $(NO_SMDH),,$(CURDIR)/$(TARGET).smdh)
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.png)
@@ -165,11 +171,12 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: all clean
+.PHONY: all clean increment-build copy-to-dist
 
 #---------------------------------------------------------------------------------
-all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) increment-build
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) copy-to-dist
 
 $(BUILD):
 	@mkdir -p $@
@@ -185,9 +192,24 @@ $(DEPSDIR):
 endif
 
 #---------------------------------------------------------------------------------
+increment-build:
+	@mkdir -p $(OUTPUT_DIR)
+	@if [ ! -f .build_number ]; then echo 1 > .build_number; fi
+	@echo $$(($$(cat .build_number) + 1)) > .build_number
+	@echo "Build number: $$(cat .build_number)"
+
+#---------------------------------------------------------------------------------
+copy-to-dist:
+	@mkdir -p $(OUTPUT_DIR)
+	@if [ -f $(TARGET).3dsx ]; then cp $(TARGET).3dsx $(OUTPUT_DIR)/$(TARGET_NAME).3dsx; fi
+	@if [ -f $(TARGET).elf ]; then cp $(TARGET).elf $(OUTPUT_DIR)/$(TARGET_NAME).elf; fi
+	@if [ -f $(TARGET).smdh ]; then cp $(TARGET).smdh $(OUTPUT_DIR)/$(TARGET_NAME).smdh; fi
+	@echo "Build copied to: $(OUTPUT_DIR)/$(TARGET_NAME).*"
+
+#---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf $(GFXBUILD)
+	@rm -fr $(BUILD) $(OUTPUT_DIR) $(TARGET).3dsx $(TARGET).smdh $(TARGET).elf $(GFXBUILD)
 
 #---------------------------------------------------------------------------------
 $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
