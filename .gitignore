@@ -13,6 +13,8 @@ dist/
 *.3dsx
 *.elf
 *.smdh
+*.cia
+*.zip
 
 # IDE files
 .vscode/
@@ -23,7 +25,59 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Temporary files
 *.tmp
 *.temp
+*.log
+
+# Executable files (Windows)
+*.exe
+
+# Audio/Media files that might be large
+*.wav
+*.mp3
+*.ogg
+
+# Large binary files
+*.bin
+*.rom
+
+# Backup files
+*.bak
+*.backup
+
+# Submodules (these should be handled as proper submodules if needed)
+/bannertool/
+/CBuilder3DS/
+/makerom/
+
+# Visual Studio files
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.user
+*.suo
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Node modules (if any)
+node_modules/
+
+# Package files
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
