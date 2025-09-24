@@ -35,7 +35,24 @@ cd 3DS-Random-Game-Launcher
 make
 ```
 
-Stick the `.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher.
+The build system automatically creates incremental versions in the `dist/` directory with numbered filenames (e.g., `3DS-Random-Game-Launcher-v1.3dsx`).
+
+### Build Scripts
+
+For easier building, use the provided scripts:
+```bash
+# Windows
+./build.bat release    # Release build
+./build.bat debug      # Debug build
+./build.bat list       # List available builds
+./build.bat clean      # Clean build files
+
+# Linux/Mac
+./build.sh release     # Release build
+./build.sh debug       # Debug build
+./build.sh list        # List available builds
+./build.sh clean       # Clean build files
+```
 
 ### Debug Build
 
@@ -43,6 +60,8 @@ For development and testing, you can build a debug version with additional loggi
 ```bash
 make DEBUG=1
 ```
+
+Debug builds include the `-debug` suffix and show verbose output during execution.
 
 ## Game Database Sources
 

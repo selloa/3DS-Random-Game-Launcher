@@ -4,42 +4,42 @@ This directory contains the compiled releases of the 3DS Random Game Launcher.
 
 ## Files
 
-### CIA Installation
-- **`cia/3DS-Random-Game-Launcher.cia`** - Standard CIA file (requires firmware 4.5.0+)
-- **`cia/3DS-Random-Game-Launcher-Compatible.cia`** - Compatible CIA file (works with firmware 1.0.0+)
-
-### Payload Files
-- **`payload/pl/randomla`** - Required payload file for standard CIA
-- **`payload/pl-compatible/00040000`** - Required payload file for compatible CIA
+### 3DSX Installation (Recommended)
+- **`3DS-Random-Game-Launcher.3dsx`** - Main executable file for Homebrew Launcher
 
 ## Installation Instructions
 
-### CIA Installation (Recommended)
+### 3DSX Installation
 
-#### For Older Firmware (1.0.0 - 4.4.x)
-1. **Install the compatible CIA**: Use FBI to install `cia/3DS-Random-Game-Launcher-Compatible.cia`
-2. **Place the payload**: Copy the `payload/pl-compatible` folder to the **root of your SD card** (so you have `SD:/pl-compatible/00040000`)
+1. **Download the 3DSX file**: Get `3DS-Random-Game-Launcher.3dsx` from the releases
+2. **Copy to SD card**: Place the `.3dsx` file in `/3ds/` on your SD card
+3. **Launch**: Use Homebrew Launcher to run the application
 
-#### For Newer Firmware (4.5.0+)
-1. **Install the standard CIA**: Use FBI to install `cia/3DS-Random-Game-Launcher.cia`
-2. **Place the payload**: Copy the `payload/pl` folder to the **root of your SD card** (so you have `SD:/pl/randomla`)
-
-### 3DSX Installation (Alternative)
-- Place `3DS-Random-Game-Launcher.3dsx` in `/3ds/` on your SD card and launch from Homebrew Launcher
+**File structure on SD card:**
+```
+SD Card Root/
+├── 3ds/
+│   └── 3DS-Random-Game-Launcher.3dsx
+├── Nintendo 3DS/
+└── (other folders)
+```
 
 ## How It Works
 
-The CIA creates a forwarder on your home menu. When launched:
-- It runs the `randomla` payload from your SD card
-- The payload launches the actual `3DS-Random-Game-Launcher.3dsx` file
-- The app scans your SD card for games and picks a random one to launch
+The 3DSX file is a standard homebrew executable that:
+- Scans your SD card for installed games
+- Filters out system titles and invalid entries
+- Randomly selects a valid game from your library
+- Launches the selected game using 3DS chainloading
 
 ## Controls
 - **A** - Launch the selected title
 - **Y** - Reroll for something else  
+- **X** - Show system information (debug features)
 - **START** - Exit
 
 ## Requirements
 - Custom firmware (CFW) on your 3DS
-- FBI or similar CIA installer
+- Homebrew Launcher
 - SD card with games installed
+- Compatible with all 3DS models and firmware versions
