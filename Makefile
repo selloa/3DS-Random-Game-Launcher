@@ -46,7 +46,8 @@ APP_AUTHOR	:= selloa (2025)
 BUILD_NUMBER := $(shell if [ -f .build_number ]; then cat .build_number; else echo 1; fi)
 OUTPUT_DIR := dist
 DEBUG_SUFFIX := $(if $(DEBUG),-debug,)
-TARGET_NAME := $(TARGET)$(DEBUG_SUFFIX)-v$(BUILD_NUMBER)
+BETA_SUFFIX := -beta
+TARGET_NAME := $(TARGET)$(DEBUG_SUFFIX)-v$(BUILD_NUMBER)$(BETA_SUFFIX)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
