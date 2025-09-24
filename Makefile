@@ -38,8 +38,8 @@ DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
-APP_TITLE	:= 3DS Random Game Launcher
-APP_DESCRIPTION	:= Launch a random game from your library
+APP_TITLE	:= 2001 Space Odyssey
+APP_DESCRIPTION	:= Text Adventure Game
 APP_AUTHOR	:= selloa (2025)
 
 # Incremental build support
