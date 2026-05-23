@@ -12,7 +12,7 @@ Can't decide what to play? Let your 3DS pick for you.
 | `scripts/` | Python tools to refresh the title database |
 | `meta/`, `unistore.json` | Universal Updater distribution assets |
 | `tools/` | CIA build binaries, RSF, and tooling docs |
-| `makerom/`, `bannertool/`, `CBuilder3DS/` | CIA packaging (see [tools/README.md](tools/README.md)) |
+| `bannertool/`, `CBuilder3DS/` | CIA packaging submodules (see [tools/README.md](tools/README.md)) |
 | `docs/` | Developer and tester documentation |
 
 **Roadmap:** [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — planned improvements to title name resolution (offline DB + on-device SMDH fallback).
@@ -101,15 +101,15 @@ Installable `.cia` packaging is supported via the tooling in `tools/`. See [tool
 
 ## Game Database Sources
 
-The title database (`source/title_database.c`) maps 3DS title IDs to display names for Layer 1 offline lookup. The shipped database is being rebuilt to include **all title types** Nlib tracks (base games, Virtual Console, DSiWare, updates, DLC, themes, etc.); the random picker can filter subsets in app code later.
+The title database (`source/title_database.c`) maps 3DS title IDs to display names for Layer 1 offline lookup. Regenerate with `scripts/build_title_database.py` to include base games, Virtual Console, DSiWare, updates, DLC, and videos; the random picker can filter subsets in app code later.
 
-**Planned rebuild priority** (see [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md)):
+**Rebuild priority** (see [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md)):
 
 1. [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb/tree/master/jsons) — regional eShop JSONs (primary names)
-2. [Nlib API](https://github.com/ghost-land/nlib-api) — `api.nlib.cc/ctr` (full catalog, all categories)
+2. [ghost-land/3dsdb](https://github.com/ghost-land/3dsdb) — bulk category JSON (`data/initial_data/*.json`)
 3. [3dsdb.com](https://3dsdb.com/xml.php) — XML gap fill
 
-The legacy `api.ghseshop.cc` endpoint is retired; Nlib is its successor. Regenerate with `scripts/build_title_database.py` (planned) or interim scripts in `scripts/README.md`.
+The legacy `api.ghseshop.cc` endpoint is retired. Do not use the Nlib API for offline catalog builds — download [ghost-land/3dsdb](https://github.com/ghost-land/3dsdb) JSON directly instead.
 
 **Note for developers**: `title_database.c` may be useful to other 3DS homebrew that needs a broad ID→name table.
 

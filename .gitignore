@@ -38,6 +38,7 @@ Thumbs.db
 *.temp
 source/title_database_generated.c
 source/title_database.c.backup_*
+scripts/__pycache__/
 
 # Submodule local build outputs
 CBuilder3DS/build/

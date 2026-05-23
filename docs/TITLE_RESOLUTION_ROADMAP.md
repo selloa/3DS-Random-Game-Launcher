@@ -31,7 +31,7 @@ Final fallback when both layers fail: show hex title ID (or product code if chea
 
 **Goal:** Ship a comprehensive, maintainable `title_database.c` regenerated from multiple sources in one step.
 
-The offline catalog should be **as complete as possible**. Include every title type Nlib tracks (base, Virtual Console, DSiWare, updates, DLC, themes, videos, extras). Filtering what the random picker actually launches belongs in **app logic** (`main.c`), not in the database build — we can exclude categories later without re-fetching.
+The offline catalog should be **as complete as possible**. Include all ghost-land/3dsdb categories (base, Virtual Console, DSiWare, updates, DLC, videos). `themes` and `extras` are not in the bulk JSON export (Nlib also reports 0). Filtering what the random picker actually launches belongs in **app logic** (`main.c`), not in the database build — we can exclude categories later without re-fetching.
 
 ### Source priority and merge rules
 
@@ -40,11 +40,12 @@ Sources are applied **in order**. When a title ID already exists, **keep the exi
 | Priority | Source | Role | Endpoints / files |
 |----------|--------|------|-------------------|
 | **1** | [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb/tree/master/jsons) | **Primary seed** — eShop display names | `list_US.json`, `list_GB.json`, `list_JP.json`, `list_KR.json`, `list_TW.json` |
-| **2** | [Nlib API](https://github.com/ghost-land/nlib-api) | **Gap fill + full coverage** — all `/ctr` categories | `https://api.nlib.cc/ctr/category/{category}`, `…/ctr/{tid}?fields=name` |
+| **2** | [ghost-land/3dsdb](https://github.com/ghost-land/3dsdb) | **Gap fill + full coverage** — bulk category JSON | `data/initial_data/*.json` |
 | **3** | [3dsdb.com](https://3dsdb.com/xml.php) | **Last-resort gap fill** — cartridge/scene catalog | `https://3dsdb.com/xml.php` |
-| **4** | [ghost-land/3dsdb](https://github.com/ghost-land/3dsdb) | **Optional enrichment** — per-title metadata repo | GitHub tree (future use) |
 
-**Retired — do not use:** [ghost-land/3DSDBAPI](https://github.com/ghost-land/3DSDBAPI) / `api.ghseshop.cc` (archived Nov 2025; DNS dead). Functionality lives under Nlib `/ctr`.
+**Retired — do not use for offline builds:** [ghost-land/3DSDBAPI](https://github.com/ghost-land/3DSDBAPI) / `api.ghseshop.cc` (archived; DNS dead).
+
+**Not used for 3DS:** [blawar/titledb](https://github.com/blawar/titledb) is **Switch-only** (`01…` TIDs). [Nlib API](https://github.com/ghost-land/nlib-api) syncs titledb for `/nx` only; its `/ctr` data comes from ghost-land/3dsdb. Use the GitHub JSON directly instead of per-title API calls.
 
 #### Within hax0kartik (priority 1)
 
@@ -52,26 +53,26 @@ Regional JSON files are merged in this order (first name kept on duplicate title
 
 **US → GB → JP → KR → TW**
 
-The hax0kartik fetcher currently ingests eShop list entries and skips obvious update rows in names. It does **not** aim to cover updates, DLC, or every VC/DSiWare row — Nlib fills that gap.
+The hax0kartik fetcher currently ingests eShop list entries and skips obvious update rows in names. It does **not** aim to cover updates, DLC, or every VC/DSiWare row — ghost-land/3dsdb fills that gap.
 
-#### Within Nlib (priority 2)
+#### Within ghost-land/3dsdb (priority 2)
 
-Fetch **every category** Nlib exposes under `/ctr`:
+Download bulk JSON from `data/initial_data/` (six files, ~seconds total):
 
-| Category | Example Nlib count (May 2026) | Notes |
-|----------|-------------------------------|-------|
-| `base` | ~3,512 | Retail / eShop applications |
-| `virtual-console` | ~623 | VC titles |
-| `dsiware` | ~1,202 | DSiWare |
-| `updates` | ~477 | Title updates (`0004000E…`) |
-| `dlc` | varies | Downloadable content |
-| `videos` | ~27 | eShop video content |
-| `extras` | varies | Additional content |
-| `themes` | varies | System themes |
+| File | Category | Notes |
+|------|----------|-------|
+| `games.json` | base | ~5,300+ retail / eShop apps |
+| `dsiware.json` | dsiware | DSiWare titles |
+| `virtual-console.json` | virtual-console | VC titles |
+| `updates.json` | updates | Title updates (`0004000E…`) |
+| `dlc.json` | dlc | Downloadable content |
+| `videos.json` | videos | eShop video content |
 
-For each category: `GET /ctr/category/{category}` → title ID list → `GET /ctr/{tid}?fields=name` for IDs **not already present** from step 1.
+Each row has `tid` and `name`. Merge only IDs **not already present** from step 1.
 
-Nlib is the **authoritative superset** for catalog completeness. hax0kartik names win on conflict because they tend to be cleaner eShop display strings.
+ghost-land/3dsdb is the **authoritative superset** for 3DS catalog completeness. hax0kartik names win on conflict because they tend to be cleaner eShop display strings.
+
+**Not in bulk JSON:** `themes`, `extras` (no rows in `initial_data/`; Nlib also reports 0).
 
 #### Within 3dsdb.com XML (priority 3)
 
@@ -86,13 +87,13 @@ Apply before writing C code:
 - Normalize smart quotes and dashes for 3DS console font
 - Collapse whitespace
 
-Do **not** strip update suffixes from names at build time — keep Nlib/hax0kartik strings as-is so updates remain identifiable. App filtering can ignore them later.
+Do **not** strip update suffixes from names at build time — keep source strings as-is so updates remain identifiable. App filtering can ignore them later.
 
 #### Catalog vs picker scope
 
 | Concern | Where it lives |
 |---------|----------------|
-| **Offline catalog** (`title_database.c`) | All Nlib categories + hax0kartik + XML gaps — maximum coverage |
+| **Offline catalog** (`title_database.c`) | ghost-land categories + hax0kartik + XML gaps — maximum coverage |
 | **Random picker pool** (`main.c`) | App filters (e.g. base + VC + DSiWare only; exclude updates/DLC/system) — can change without re-fetching |
 
 ---
@@ -106,7 +107,7 @@ Do **not** strip update suffixes from names at build time — keep Nlib/hax0kart
 - [ ] Apply full merge to `source/title_database.c` and verify build
 - [ ] Ship updated database in a release
 
-Dry-run (May 2026) found **4,199** unique base titles from hax0kartik alone vs **4,135** in the current database (+64). Full Nlib merge is expected to add substantially more (Nlib total ~5,841 across all categories).
+Dry-run (May 2026) found **4,199** unique base titles from hax0kartik alone vs **4,135** in the current database (+64). Full ghost-land/3dsdb merge adds updates, VC, DSiWare, DLC, and videos (~6,000+ unique CTR title IDs expected).
 
 ### Phase 1b — Multi-source merge script
 
@@ -115,7 +116,7 @@ Replace ad hoc manual stitching with a single PC tool:
 ```
 fetch hax0kartik regional JSONs (US→GB→JP→KR→TW)
     → seed catalog + names
-fetch Nlib /ctr/category/* for ALL categories
+fetch ghost-land/3dsdb data/initial_data/*.json
     → add missing title IDs + names
 fetch 3dsdb.com/xml.php
     → add missing title IDs + names
@@ -124,24 +125,26 @@ fetch 3dsdb.com/xml.php
 
 Tasks:
 
-- [ ] Create `scripts/build_title_database.py` implementing the priority order above
-- [ ] Nlib pass: all categories (`base`, `virtual-console`, `dsiware`, `updates`, `dlc`, `videos`, `extras`, `themes`)
-- [ ] Reuse cleaners from `fetch_3dsdb_complete.py`
-- [ ] `--dry-run` writes `source/title_database_generated.c` without overwriting
-- [ ] Timestamped backup before overwriting `source/title_database.c`
+- [x] Create `scripts/build_title_database.py` implementing the priority order above
+- [x] ghost-land/3dsdb pass: `games`, `dsiware`, `virtual-console`, `updates`, `dlc`, `videos`
+- [x] Reuse cleaners via `scripts/title_db_common.py`
+- [x] `--dry-run` writes `source/title_database_generated.c` without overwriting
+- [x] Timestamped backup before overwriting `source/title_database.c`
 - [x] Document source priority and merge rules (this file)
+- [ ] Apply full merge to `source/title_database.c` and verify build
 - [ ] Add to release checklist: regenerate DB before tagging
-- [ ] Update `scripts/README.md` once the merge script ships
+- [x] Update `scripts/README.md`
 
 ### Data sources reference
 
 | Source | URL | Status | Role |
 |--------|-----|--------|------|
 | hax0kartik/3dsdb | https://github.com/hax0kartik/3dsdb/tree/master/jsons | Static since Feb 2023; still fetchable | Priority 1 — eShop names |
-| Nlib API | https://api.nlib.cc/ctr | Online; maintained | Priority 2 — full catalog |
+| ghost-land/3dsdb | https://github.com/ghost-land/3dsdb | Bulk JSON; fast | Priority 2 — full 3DS catalog |
 | 3dsdb.com XML | https://3dsdb.com/xml.php | Intermittent; currently up | Priority 3 — gap fill |
-| ghost-land/3dsdb | https://github.com/ghost-land/3dsdb | Optional | Priority 4 — enrichment |
-| ~~ghseshop / 3DSDBAPI~~ | ~~https://api.ghseshop.cc~~ | **Retired** | Replaced by Nlib |
+| blawar/titledb | https://github.com/blawar/titledb | Switch only | Not used for 3DS |
+| Nlib API | https://api.nlib.cc/ctr | Online | Reference / media only — do not fetch per-title for builds |
+| ~~ghseshop / 3DSDBAPI~~ | ~~https://api.ghseshop.cc~~ | **Retired** | — |
 
 ---
 
@@ -218,9 +221,10 @@ flowchart TD
 |------|------|
 | `source/main.c` | Title picking, display, and picker-side filtering |
 | `source/title_database.c` | Layer 1 static lookup table |
-| `scripts/build_title_database.py` | Planned unified merge tool (Layer 1b) |
-| `scripts/fetch_3dsdb_complete.py` | hax0kartik-only fetch (interim / used by merge script) |
-| `scripts/fetch_3dsdb_api.py` | Legacy Nlib fetch (reference for merge script) |
+| `scripts/build_title_database.py` | Unified merge tool (Layer 1b) |
+| `scripts/title_db_common.py` | Shared cleaners and catalog merge helpers |
+| `scripts/fetch_3dsdb_complete.py` | hax0kartik-only fetch (interim) |
+| `scripts/fetch_3dsdb_api.py` | Legacy Nlib API fetch (reference only) |
 | `scripts/fix_display_issues.py` | Post-process cleaning for generated C |
 | `scripts/README.md` | Script usage |
 
