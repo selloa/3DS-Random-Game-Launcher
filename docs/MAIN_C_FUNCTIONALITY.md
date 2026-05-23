@@ -16,24 +16,26 @@ The application starts by initializing essential 3DS system components:
 - **Filesystem**: `fsInit()` — Required for on-device SMDH reads
 
 ### 2. Game Discovery
-The app scans the SD card for installed games:
+The app queries installed titles via the Application Manager:
 
 ```c
-AM_GetTitleList(&readTitlesAmount, MEDIATYPE_SD, 900, readTitlesID);
+AM_GetTitleList(..., MEDIATYPE_SD, ...);
+AM_GetTitleList(..., MEDIATYPE_NAND, ...);
 ```
 
-- Retrieves up to 900 installed titles from the SD card
-- Stores title IDs in an array for random selection
-- Handles the case where no games are found
+- **SD** titles are always scanned (up to 900)
+- **NAND** titles are scanned at startup; included in the picker only when **Include NAND titles** is ON in the SELECT menu (default OFF)
+- Duplicate title IDs on SD and NAND are deduplicated (SD wins)
+- Launch uses the correct media type (`MEDIATYPE_SD` or `MEDIATYPE_NAND`) for chainloading and SMDH reads
 
 ### 3. Random Game Selection Algorithm
 
 #### Eligible pool (`title_picker.c`)
 
-Before each pick, the app builds a pool of SD titles that pass:
+Before each pick, the app builds a pool of scanned titles that pass:
 
 1. **Category filters** (default: retail/VC applications `0x0000`; demos, DSiWare, content packs included; patches `0x000E`, DLC `0x008C`, system `0x0005`–`0x0009`, DLP child, certificate store excluded)
-2. **Optional toggles** (SELECT menu): include patches, DLC, system, demos, DSiWare, or content packs
+2. **Optional toggles** (SELECT menu): include patches, DLC, system, demos, DSiWare, content packs, native apps, or Virtual Console
 3. **Homebrew mode** (default OFF): only title IDs in `title_database.c` may be picked
 4. **Homebrew mode ON**: unknown IDs (not in catalog) may be picked; DB classifies them as homebrew
 
@@ -69,7 +71,7 @@ For each selected game, the app shows (L/R pages):
 - **A Button**: Launch the selected game
 - **Y Button**: Pick a new random title from the eligible pool
 - **X Button**: Toggle homebrew mode (rebuilds pool)
-- **SELECT**: Open filter menu (patches / DLC / system / demos / DSiWare / content / homebrew)
+- **SELECT**: Open filter menu (patches / DLC / system / demos / DSiWare / content / native / VC / NAND / homebrew)
 - **L / R**: Previous / next metadata page
 - **START Button**: Exit the application
 

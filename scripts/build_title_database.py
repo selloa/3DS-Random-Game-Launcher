@@ -26,6 +26,7 @@ from title_db_common import (
     clean_title_name,
     count_existing_entries,
     generate_c_code,
+    generate_vc_catalog_c_code,
     is_valid_catalog_name,
     is_valid_hax0kartik_title,
     normalize_title_id,
@@ -100,7 +101,7 @@ def step1_hax0kartik(catalog: TitleCatalog) -> None:
     print(f"  Catalog after step 1: {len(catalog)} entries (+{added} new, {skipped} dupes in batch)\n")
 
 
-def step2_ghostland_3dsdb(catalog: TitleCatalog) -> None:
+def step2_ghostland_3dsdb(catalog: TitleCatalog, vc_ids: set[str]) -> None:
     """Priority 2: ghost-land/3dsdb bulk category JSON files."""
     print("=== Step 2: ghost-land/3dsdb ===")
     total_added = 0
@@ -131,6 +132,8 @@ def step2_ghostland_3dsdb(catalog: TitleCatalog) -> None:
                 continue
             title_id = normalize_title_id(raw_id)
             name = clean_title_name(str(name).strip())
+            if category == "virtual-console" and is_valid_catalog_name(title_id, name):
+                vc_ids.add(title_id)
             pairs.append((title_id, name))
 
         added, skipped = catalog.merge(pairs, validate=is_valid_catalog_name)
@@ -220,10 +223,11 @@ def main() -> int:
         print(f"Current database: {previous_count} entries\n")
 
     catalog = TitleCatalog()
+    vc_ids: set[str] = set()
     if 1 in args.steps:
         step1_hax0kartik(catalog)
     if 2 in args.steps:
-        step2_ghostland_3dsdb(catalog)
+        step2_ghostland_3dsdb(catalog, vc_ids)
     if 3 in args.steps:
         step3_xml(catalog)
 
@@ -237,11 +241,16 @@ def main() -> int:
         return 1
 
     c_code = generate_c_code(titles, SOURCE_COMMENT)
+    vc_output_path = os.path.join(repo_root, "source", "title_vc_catalog.c")
+    vc_code = generate_vc_catalog_c_code(sorted(vc_ids))
 
     if args.dry_run:
         with open(output_path, "w", encoding="utf-8") as handle:
             handle.write(c_code)
+        with open(vc_output_path, "w", encoding="utf-8") as handle:
+            handle.write(vc_code)
         print(f"\nDry run written to: {output_path}")
+        print(f"VC catalog written to: {vc_output_path} ({len(vc_ids)} entries)")
         return 0
 
     if os.path.isfile(output_path):
@@ -252,7 +261,10 @@ def main() -> int:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as handle:
         handle.write(c_code)
+    with open(vc_output_path, "w", encoding="utf-8") as handle:
+        handle.write(vc_code)
     print(f"Wrote {len(titles)} entries to {output_path}")
+    print(f"Wrote {len(vc_ids)} VC title IDs to {vc_output_path}")
     return 0
 
 

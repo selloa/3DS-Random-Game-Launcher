@@ -8,7 +8,13 @@
 #include "title_meta.h"
 #include "title_smdh.h"
 
-#define TITLE_PICKER_POOL_MAX 900
+#define TITLE_PICKER_POOL_MAX 1800
+#define TITLE_SCAN_MAX 900
+
+typedef struct {
+	u64 titleId;
+	FS_MediaType media;
+} title_source_t;
 
 typedef enum {
 	TITLE_NAME_SOURCE_SMDH = 0,
@@ -23,6 +29,7 @@ typedef struct {
 
 typedef struct {
 	u64 titleId;
+	FS_MediaType media;
 	char display_name[TITLE_SMDH_SHORT_NAME_UTF8_MAX];
 	title_name_source_t name_source;
 	const char *catalog_name;
@@ -33,11 +40,11 @@ typedef struct {
 
 bool title_picker_is_eligible(u64 titleId, const title_filter_options_t *filters, bool include_homebrew);
 
-void title_picker_rebuild_pool(title_picker_pool_t *pool, const u64 *titleIds, u32 titleCount,
+void title_picker_rebuild_pool(title_picker_pool_t *pool, const title_source_t *titles, u32 titleCount,
 	const title_filter_options_t *filters, bool include_homebrew);
 
-bool title_picker_pick_random(const title_picker_pool_t *pool, const u64 *titleIds, u32 titleCount,
-	u64 *outTitleId, u32 *outPoolIndex);
+bool title_picker_pick_random(const title_picker_pool_t *pool, const title_source_t *titles, u32 titleCount,
+	u64 *outTitleId, FS_MediaType *outMedia, u32 *outPoolIndex);
 
 void title_picker_load_pick(u64 titleId, FS_MediaType media, bool include_homebrew, title_pick_t *pick);
 

@@ -10,6 +10,8 @@ typedef struct {
 	bool include_demos;
 	bool include_dsiware;
 	bool include_content_packs;
+	bool include_native_apps;
+	bool include_virtual_console;
 } title_filter_options_t;
 
 typedef struct {

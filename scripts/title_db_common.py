@@ -122,6 +122,50 @@ def generate_c_code(titles: List[Tuple[str, str]], source_comment: str) -> str:
     return "\n".join(lines)
 
 
+def generate_vc_catalog_c_code(title_ids: List[str]) -> str:
+    """Generate title_vc_catalog.c — sorted VC title ID set for runtime filtering."""
+    sorted_ids = sorted(set(title_ids))
+    lines = [
+        '#include "title_database.h"',
+        "",
+        "// Virtual Console title IDs from ghost-land/3dsdb virtual-console.json",
+        f"// Total entries: {len(sorted_ids)}",
+        "// Regenerate via scripts/build_title_database.py or scripts/build_vc_catalog.py",
+        "",
+        "static const u64 title_vc_catalog[] = {",
+    ]
+
+    for i, title_id in enumerate(sorted_ids):
+        suffix = "," if i < len(sorted_ids) - 1 else ""
+        lines.append(f"    0x{title_id}ULL{suffix}")
+
+    lines.extend(
+        [
+            "};",
+            "",
+            "bool title_database_is_virtual_console(u64 title_id)",
+            "{",
+            "    u32 lo = 0;",
+            "    u32 hi = sizeof(title_vc_catalog) / sizeof(title_vc_catalog[0]);",
+            "",
+            "    while (lo < hi) {",
+            "        u32 mid = lo + (hi - lo) / 2;",
+            "        if (title_vc_catalog[mid] < title_id)",
+            "            lo = mid + 1;",
+            "        else",
+            "            hi = mid;",
+            "    }",
+            "",
+            "    return lo < sizeof(title_vc_catalog) / sizeof(title_vc_catalog[0])",
+            "        && title_vc_catalog[lo] == title_id;",
+            "}",
+            "",
+        ]
+    )
+
+    return "\n".join(lines)
+
+
 def count_existing_entries(path: str) -> int:
     """Count entries in the current title_database.c if present."""
     if not os.path.isfile(path):
