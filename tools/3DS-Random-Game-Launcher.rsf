@@ -3,40 +3,32 @@ BasicInfo:
   CompanyCode             : "00"
   ProductCode             : "CTR-P-RGAM"
   ContentType             : Application
-  Logo                    : Homebrew # Nintendo / Licensed / Distributed / iQue / iQueForSystem
+  Logo                    : Homebrew
 
-RomFs:
-  # Specifies the root path of the read only file system to include in the ROM.
-  RootPath                : "romfs"
-  
 TitleInfo:
-  UniqueId                : 0x00000000 # 3DS Random Game Launcher Unique ID
+  UniqueId                : 0x5247C
   Category                : Application
-  
+
 CardInfo:
-  MediaSize               : 128MB # 128MB / 256MB / 512MB / 1GB / 2GB / 4GB
-  MediaType               : Card1 # Card1 / Card2
-  CardDevice              : None # NorFlash(Pick this if you use savedata) / None
-  
+  MediaSize               : 128MB
+  MediaType               : Card1
+  CardDevice              : None
 
 Option:
-  UseOnSD                 : true # true if App is to be installed to SD
-  FreeProductCode         : true # Removes limitations on ProductCode
-  MediaFootPadding        : false # If true CCI files are created with padding
-  EnableCrypt             : false # Enables encryption for NCCH and CIA
-  EnableCompress          : true # Compresses exefs code
-  
+  UseOnSD                 : true
+  FreeProductCode         : true
+  MediaFootPadding        : false
+  EnableCrypt             : false
+  EnableCompress          : true
+
 AccessControlInfo:
-  #UseExtSaveData : true
-  #ExtSaveDataId: 0xff3ff
-  #UseExtendedSaveDataAccessControl: true
-  #AccessibleSaveDataIds: [0x101, 0x202, 0x303, 0x404, 0x505, 0x606]
+  # First block must be present (comments only). Do not put permissions here.
 
 SystemControlInfo:
-  SaveDataSize: 128KB
-  RemasterVersion: 0
-  StackSize: 0x40000
-  
+  SaveDataSize            : 0KB
+  RemasterVersion         : 0
+  StackSize               : 0x40000
+
 # DO NOT EDIT BELOW HERE OR PROGRAMS WILL NOT LAUNCH (most likely)
 
 AccessControlInfo:
@@ -44,13 +36,11 @@ AccessControlInfo:
    - Debug
    - DirectSdmc
    - DirectSdmcWrite
-   
+
   IdealProcessor                : 0
   AffinityMask                  : 1
-  
   Priority                      : 16
-   
-  MaxCpu                        : 0x9E # Default
+  MaxCpu                        : 0x9E
   DisableDebug                  : false
   EnableForceDebug              : false
   CanWriteSharedPage            : false
@@ -60,25 +50,24 @@ AccessControlInfo:
   CanShareDeviceMemory          : false
   RunnableOnSleep               : false
   SpecialMemoryArrange          : false
-  CoreVersion                   : 0
-  DescVersion                   : 0
-  
+  CoreVersion                   : 2
+  DescVersion                   : 2
   ReleaseKernelMajor            : "02"
-  ReleaseKernelMinor            : "00" 
+  ReleaseKernelMinor            : "33"
   MemoryType                    : Application
-  HandleTableSize: 512
-  
-  SystemModeExt                 : Legacy # Legacy(Default)/124MB/178MB  Legacy:Use Old3DS SystemMode
-  CpuSpeed                      : 804MHz # 268MHz(Default)/804MHz
-  EnableL2Cache                 : true # false(default)/true
-  CanAccessCore2                : true 
-  
-  IORegisterMapping: 
+  HandleTableSize               : 512
+  SystemModeExt                 : Legacy
+  CpuSpeed                      : 804MHz
+  EnableL2Cache                 : true
+  CanAccessCore2                : true
+
+  IORegisterMapping:
    - 1ff50000-1ff57fff
    - 1ff70000-1ff77fff
-  MemoryMapping: 
+  MemoryMapping:
    - 1f000000-1f5fffff:r
-  SystemCallAccess: 
+
+  SystemCallAccess:
     ArbitrateAddress: 34
     Break: 60
     CancelTimer: 28
@@ -130,8 +119,8 @@ AccessControlInfo:
     UnmapMemoryBlock: 32
     WaitSynchronization1: 36
     WaitSynchronizationN: 37
-  InterruptNumbers:
-  ServiceAccessControl: 
+
+  ServiceAccessControl:
    - APT:U
    - $hioFIO
    - $hostio0
@@ -164,9 +153,9 @@ AccessControlInfo:
    - csnd:SND
    - am:u
    - ns:s
-   
+
 SystemControlInfo:
-  Dependency: 
+  Dependency:
     ac: 0x0004013000002402L
     am: 0x0004013000001502L
     boss: 0x0004013000003402L

@@ -45,7 +45,7 @@ If you prefer to run steps yourself:
 
 ```bat
 tools\bin\bannertool.exe makebanner -i meta\cia-banner.png -a meta\audio.wav -o build\banner.bnr
-tools\bin\bannertool.exe makesmdh -s "Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
+tools\bin\bannertool.exe makesmdh -s "3DS Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
 ```
 
 3. Package with makerom:
@@ -54,7 +54,7 @@ tools\bin\bannertool.exe makesmdh -s "Random Launcher" -l "3DS Random Game Launc
 tools\bin\makerom.exe -f cia -o dist\3DS-Random-Game-Launcher-v0.1.9.cia ^
   -rsf tools\3DS-Random-Game-Launcher.rsf -target t ^
   -elf 3DS-Random-Game-Launcher.elf ^
-  -icon build\icon.icn -banner build\banner.bnr -desc app:4
+  -icon build\icon.icn -banner build\banner.bnr
 ```
 
 Adjust the output filename to match `VERSION`. See the [makerom README](https://github.com/3DSGuy/Project_CTR/blob/master/makerom/README.md) for full options.

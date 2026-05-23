@@ -4,6 +4,7 @@
 #include <3ds.h>
 #include <time.h>
 #include "title_database.h"
+#include "title_smdh.h"
 
 #ifndef APP_VERSION
 #define APP_VERSION "0.0.0"
@@ -20,6 +21,46 @@ void clear_and_redraw_header(void) {
     printf("\x1b[90mv%s\x1b[0m\n\n", APP_VERSION);
 }
 
+static void print_smdh_line(title_smdh_result_t smdhResult, const char *smdhName) {
+	printf("\x1b[90mSMDH:\x1b[0m ");
+	switch (smdhResult) {
+	case TITLE_SMDH_OK:
+		printf("\x1b[1;37m%s\x1b[0m\n", smdhName);
+		break;
+	case TITLE_SMDH_ERR_EMPTY:
+		printf("\x1b[90m(empty)\x1b[0m\n");
+		break;
+	default: {
+		Result fsResult = title_smdh_get_last_result();
+		printf("\x1b[90m(unavailable");
+		if (R_FAILED(fsResult))
+			printf(" %08lX", (unsigned long)fsResult);
+		printf(")\x1b[0m\n");
+		break;
+	}
+	}
+}
+
+static void print_picked_title(u64 titleId, const char *gameName, title_smdh_result_t smdhResult, const char *smdhName) {
+	printf("\x1b[90mDatabase:\x1b[0m ");
+	if (gameName != NULL) {
+		printf("\x1b[1;37m%s\x1b[0m\n", gameName);
+	} else {
+		printf("\x1b[90m(not found)\x1b[0m\n");
+	}
+
+	print_smdh_line(smdhResult, smdhName);
+	printf("\x1b[90mTitle ID:\x1b[0m %016llx\n\n", titleId);
+}
+
+static void print_controls(void) {
+	printf("\x1b[37mPress A to launch\x1b[0m\n");
+	printf("\x1b[37mPress Y to throw the dice again\x1b[0m\n\n");
+	printf("\x1b[90mPress X to toggle homebrew mode\x1b[0m\n");
+	printf("\x1b[90mHomebrew mode: %s\x1b[0m\n\n", g_include_homebrew ? "\x1b[37mON\x1b[0m" : "\x1b[90mOFF\x1b[0m");
+	printf("\x1b[90mPress START to exit\x1b[0m\n");
+}
+
 
 
 
@@ -30,6 +71,7 @@ int main()
 {
 	Result res = 0;
 	time_t t;
+	bool fsReady = false;
 
 	// Initialize graphics system
 	gfxInitDefault();
@@ -42,12 +84,12 @@ int main()
 	if (R_FAILED(res)) {
 		goto cleanup_error;
 	}
-	
-	// Initialize AM application
-	res = amAppInit();
+
+	res = fsInit();
 	if (R_FAILED(res)) {
 		goto cleanup_error;
 	}
+	fsReady = true;
 
 	u32 readTitlesAmount;
 	u64 readTitlesID[900] = {};
@@ -88,6 +130,8 @@ int main()
 randomPicker:
 	u64 randomTitle = 0;
 	const char* gameName = NULL;
+	char smdhName[TITLE_SMDH_SHORT_NAME_UTF8_MAX];
+	title_smdh_result_t smdhResult = TITLE_SMDH_ERR_OPEN;
 	u32 attempts = 0;
 	const u32 max_attempts = 100; // Prevent infinite loops
 	
@@ -158,21 +202,12 @@ randomPicker:
 		
 		goto cleanup_normal;
 	}
-	
 
-	// At this point we have a valid title
-	if (gameName != NULL) {
-		// Regular game from database
-		printf("\x1b[1;37m%s\x1b[0m\n\n", gameName);
-	} else {
-		// Title not in database - display titleID only
-		printf("\x1b[1;37m%016llx\x1b[0m\n\n", randomTitle);
-	}
-	printf("\x1b[37mPress A to launch\x1b[0m\n");
-	printf("\x1b[37mPress Y to throw the dice again\x1b[0m\n\n");
-	printf("\x1b[90mPress X to toggle homebrew mode\x1b[0m\n");
-	printf("\x1b[90mHomebrew mode: %s\x1b[0m\n\n", g_include_homebrew ? "\x1b[37mON\x1b[0m" : "\x1b[90mOFF\x1b[0m");
-	printf("\x1b[90mPress START to exit\x1b[0m\n");
+	smdhResult = title_smdh_get_short_name(randomTitle, MEDIATYPE_SD, smdhName, sizeof(smdhName));
+
+	// At this point we have a valid title — show DB and SMDH names for comparison
+	print_picked_title(randomTitle, gameName, smdhResult, smdhName);
+	print_controls();
 
 	while (aptMainLoop())
 	{
@@ -214,16 +249,8 @@ randomPicker:
 			
 			// Clear screen and redraw with updated toggle state
 			clear_and_redraw_header();
-			if (gameName != NULL) {
-				printf("\x1b[1;37m%s\x1b[0m\n\n", gameName);
-			} else {
-				printf("\x1b[1;37m%016llx\x1b[0m\n\n", randomTitle);
-			}
-			printf("\x1b[37mPress A to launch\x1b[0m\n");
-			printf("\x1b[37mPress Y to throw the dice again\x1b[0m\n\n");
-			printf("\x1b[90mPress X to toggle homebrew mode\x1b[0m\n");
-			printf("\x1b[90mHomebrew mode: %s\x1b[0m\n\n", g_include_homebrew ? "\x1b[37mON\x1b[0m" : "\x1b[90mOFF\x1b[0m");
-			printf("\x1b[90mPress START to exit\x1b[0m\n");
+			print_picked_title(randomTitle, gameName, smdhResult, smdhName);
+			print_controls();
 		}
 		
 
@@ -248,6 +275,8 @@ cleanup_error:
 
 cleanup_normal:
 	// Normal cleanup
+	if (fsReady)
+		fsExit();
 	amExit();
 	gfxExit();
 	return 0;

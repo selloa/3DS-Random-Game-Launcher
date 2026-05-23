@@ -30,7 +30,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-tools\bin\bannertool.exe makesmdh -s "Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
+tools\bin\bannertool.exe makesmdh -s "3DS Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
 if %errorlevel% neq 0 (
     echo.
     echo bannertool makesmdh failed!
@@ -39,7 +39,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Step 3: Packaging CIA...
-tools\bin\makerom.exe -f cia -o dist\%OUT_NAME%.cia -rsf tools\3DS-Random-Game-Launcher.rsf -target t -elf %TARGET%.elf -icon build\icon.icn -banner build\banner.bnr -desc app:4
+tools\bin\makerom.exe -f cia -o dist\%OUT_NAME%.cia -rsf tools\3DS-Random-Game-Launcher.rsf -target t -elf %TARGET%.elf -icon build\icon.icn -banner build\banner.bnr
 if %errorlevel% neq 0 (
     echo.
     echo makerom failed!
