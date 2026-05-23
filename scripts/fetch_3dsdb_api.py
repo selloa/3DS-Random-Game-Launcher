@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
-Script to fetch all 3DS titles from the 3dsdb API.
-This script fetches data from the API endpoints for all categories.
+Legacy script to fetch 3DS titles from the Nlib API (/ctr endpoints).
+
+Replaces the deprecated api.ghseshop.cc 3DSDB API (see ghost-land/3DSDBAPI).
+Prefer fetch_3dsdb_complete.py for routine database updates.
 """
 
-import requests
 import json
+import os
 import time
-from typing import List, Tuple, Set
+from typing import List, Set, Tuple
 
-# Base URL for the 3dsdb API
-API_BASE = "https://api.ghseshop.cc"
+import requests
+
+# Nlib API — successor to api.ghseshop.cc (https://github.com/ghost-land/nlib-api)
+API_BASE = "https://api.nlib.cc/ctr"
 
 # Categories we want to fetch
 CATEGORIES = ["base", "virtual-console", "dsiware"]
@@ -34,7 +38,7 @@ def fetch_category_titles(category: str) -> List[Tuple[str, str]]:
         # Fetch details for each title ID
         for i, title_id in enumerate(title_ids):
             try:
-                detail_url = f"{API_BASE}/{title_id}"
+                detail_url = f"{API_BASE}/{title_id}?fields=name"
                 detail_response = requests.get(detail_url, timeout=10)
                 detail_response.raise_for_status()
                 
@@ -85,7 +89,7 @@ def generate_c_code(titles: List[Tuple[str, str]]) -> str:
     c_code = '''#include "title_database.h"
 #include <string.h>
 
-// Complete 3DS title database generated from 3dsdb API
+// Complete 3DS title database generated from Nlib API (api.nlib.cc/ctr)
 // Total entries: {count}
 // Includes regular 3DS games, Virtual Console games, and DSiWare from all regions
 
@@ -129,7 +133,7 @@ u32 get_database_size(void) {
 
 def main():
     """Main function to fetch and process all 3DS titles"""
-    print("Starting comprehensive 3DS title database update from 3dsdb API...")
+    print("Starting 3DS title database update from Nlib API (api.nlib.cc/ctr)...")
     
     # First, get the stats to confirm what we're fetching
     try:

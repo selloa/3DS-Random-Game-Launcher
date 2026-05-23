@@ -21,12 +21,12 @@ Then rebuild with `make` or `build.bat release`.
 | Script | Status | Description |
 |--------|--------|-------------|
 | `fetch_3dsdb_complete.py` | **Primary** | Full regional fetch from 3dsdb GitHub JSONs |
-| `fetch_3dsdb_api.py` | Legacy | Fetches from `api.ghseshop.cc` |
-| `fetch_3dsdb_batch.py` | Legacy | Batch variant of the API fetch |
+| `fetch_3dsdb_api.py` | Legacy | Fetches from [Nlib API](https://github.com/ghost-land/nlib-api) (`api.nlib.cc/ctr`) |
+| `fetch_3dsdb_batch.py` | Legacy | Batch variant of the Nlib API fetch |
 | `expand_database.py` | Legacy | Fetches from 3dsdb.com XML export |
 | `fix_display_issues.py` | Utility | Cleans TM, HTML tags, and display characters in an existing `.c` file (also applied automatically during fetch) |
 
-The legacy fetch scripts predate `fetch_3dsdb_complete.py`. Keep them for reference or delete once you confirm the complete script covers your needs.
+The legacy fetch scripts predate `fetch_3dsdb_complete.py` and hit the Nlib `/ctr` endpoints (successor to the archived `api.ghseshop.cc` 3DSDB API). They are slow (~3k+ per-title requests) — use `fetch_3dsdb_complete.py` unless you specifically need Nlib’s category breakdown or media metadata.
 
 ## Requirements
 
