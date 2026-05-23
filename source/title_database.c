@@ -8722,6 +8722,11 @@ static const title_entry_t title_database[] = {
     {0x000480045A32454AULL, "Famikonu~_zu DS ~ ushinawareta-k_ ~ DL"}
 };
 
+bool title_database_contains(u64 title_id)
+{
+	return lookup_game_name(title_id) != NULL;
+}
+
 const char* lookup_game_name(u64 title_id) {
     u32 database_size = get_database_size();
 

@@ -3,7 +3,7 @@
 ## Overview
 The `main.c` file is the core of a Nintendo 3DS homebrew application that randomly selects and launches games from the user's installed game library. It provides an interactive interface for users to discover and play games they might not have tried otherwise.
 
-**Current picker policy (May 2026):** no content-category filtering. Any installed SD title can be picked if it resolves in the offline database, or if homebrew mode is on. Category/user filtering will be designed after hardware testing with the rebuilt catalog.
+**Current picker policy (May 2026):** display names come from **SMDH first** (catalog DB fallback, then title ID hex). The random pool uses **category filters** (patches, DLC, system — off by default; demos, DSiWare, content packs — on by default) and a **catalog allowlist** when homebrew mode is off. Open **SELECT** for the filter menu; **L/R** pages show metadata for testing.
 
 ## Core Functionality
 
@@ -12,7 +12,8 @@ The application starts by initializing essential 3DS system components:
 
 - **Graphics System**: `gfxInitDefault()` - Sets up the 3DS graphics subsystem
 - **Console**: `consoleInit(GFX_TOP, NULL)` - Initializes text output on the top screen
-- **Application Manager**: `amInit()` and `amAppInit()` - Enables the app to interact with other installed titles
+- **Application Manager**: `amInit()` — Enables the app to interact with other installed titles
+- **Filesystem**: `fsInit()` — Required for on-device SMDH reads
 
 ### 2. Game Discovery
 The app scans the SD card for installed games:
@@ -27,61 +28,55 @@ AM_GetTitleList(&readTitlesAmount, MEDIATYPE_SD, 900, readTitlesID);
 
 ### 3. Random Game Selection Algorithm
 
-The core random selection process works as follows:
+#### Eligible pool (`title_picker.c`)
 
-#### Title selection (no category filter)
+Before each pick, the app builds a pool of SD titles that pass:
 
-The app picks randomly from **all** titles returned by `AM_GetTitleList` on the SD card. Legacy code that filtered by content category (`0x00` applications, `0x02` system apps) is **commented out** and not active:
+1. **Category filters** (default: retail/VC applications `0x0000`; demos, DSiWare, content packs included; patches `0x000E`, DLC `0x008C`, system `0x0005`–`0x0009`, DLP child, certificate store excluded)
+2. **Optional toggles** (SELECT menu): include patches, DLC, system, demos, DSiWare, or content packs
+3. **Homebrew mode** (default OFF): only title IDs in `title_database.c` may be picked
+4. **Homebrew mode ON**: unknown IDs (not in catalog) may be picked; DB classifies them as homebrew
 
-```c
-// TEMPORARILY DISABLED: Category filtering - now accepts all categories
-```
+Category is decoded from the title ID: `(u16)((titleId >> 32) & 0xFFFF)`.
 
-The content-category byte is still read from the title ID but is unused:
+#### Display names (SMDH-primary)
 
-```c
-unsigned char contentCategory = ((unsigned char*)(&readTitlesID[randomTitlePicked]))[4];
-```
+For each picked title, names resolve in order:
 
-**Effective gate today:** database lookup (or homebrew mode). Updates, DLC, Virtual Console, DSiWare, and base apps are all eligible if installed and listed in `title_database.c`.
+1. SMDH short name (`title_smdh_load`)
+2. Catalog name from `lookup_game_name()` if SMDH fails
+3. 16-digit hex title ID
 
-A more comprehensive filtering suite (category rules, user preferences, favorites/blacklist) is planned **after** hardware testing with the rebuilt offline database — see [TITLE_RESOLUTION_ROADMAP.md](TITLE_RESOLUTION_ROADMAP.md).
+The static database is **not** the primary name source when SMDH succeeds.
 
-#### Database Lookup
-For each randomly selected title:
-1. Extracts the title ID from the system
-2. Looks up the game name in the built-in database (`title_database.c`)
-3. The database contains **8,714 entries** (merged offline catalog), including:
-   - Base 3DS applications
-   - Virtual Console titles
-   - DSiWare
-   - Updates, DLC, and eShop videos
-   - Multi-region variants
+#### Homebrew mode
 
-If the title is not in the database, the app rerolls (up to 100 attempts) unless homebrew mode is enabled.
-
-#### Homebrew Support (basic — to be expanded)
-
-The app includes a minimal toggle for titles not in the database:
-- **Homebrew Mode OFF** (default): Only picks titles found in the database; unknown titles cause a reroll
-- **Homebrew Mode ON**: Accepts titles not in the database; displays the raw 16-digit hex title ID
-- Homebrew mode does not read SMDH metadata yet — that is planned in Layer 2 of the roadmap
-
-Future work: richer homebrew handling (SMDH names, clearer UI, separate pool options) after hardware validation.
+- **OFF (default):** catalog allowlist — only known catalog title IDs are eligible
+- **ON:** includes titles not in the catalog; summary page shows `Homebrew: Yes` when applicable
+- Toggle via **X** or the SELECT filter menu
 
 ### 4. User Interface
 
 #### Display Information
-For each selected game, the app shows:
-- **Titles in database**: Game name from `title_database.c`
-- **Titles not in database** (homebrew mode only): Raw 16-digit hex title ID
-- Current homebrew mode status (ON/OFF)
+For each selected game, the app shows (L/R pages):
+- **Name** from SMDH (with source line: SMDH / Catalog fallback / Title ID)
+- **Homebrew: Yes** when homebrew mode is on and the title is not in the catalog
+- SMDH metadata (long name, publisher, ratings, flags)
+- Title ID / AM metadata (category, product code, version, size)
+- Current filter and homebrew mode status
 
 #### Control Scheme
 - **A Button**: Launch the selected game
-- **Y Button**: "Throw the dice again" - select a new random game
-- **X Button**: Toggle homebrew mode on/off
+- **Y Button**: Pick a new random title from the eligible pool
+- **X Button**: Toggle homebrew mode (rebuilds pool)
+- **SELECT**: Open filter menu (patches / DLC / system / demos / DSiWare / content / homebrew)
+- **L / R**: Previous / next metadata page
 - **START Button**: Exit the application
+
+#### Filter menu (SELECT)
+- **Up/Down**: Move cursor
+- **A**: Toggle selected row
+- **B** or **SELECT**: Close menu and rebuild pool
 
 ### 5. Game Launching
 When the user presses A:

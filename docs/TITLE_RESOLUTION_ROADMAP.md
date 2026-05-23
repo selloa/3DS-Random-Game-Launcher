@@ -136,17 +136,14 @@ Tasks:
 
 Merge result (May 2026): **8,714** unique CTR title IDs — up from **4,135** in the previous database. Step 1 alone contributed 4,199 hax0kartik base titles; ghost-land added updates, VC, DSiWare, DLC, and videos.
 
-### Phase 1c — Hardware testing and picker filtering (next)
+### Phase 1c — Picker filtering and SMDH-primary names (shipped for testing)
 
-**Goal:** Validate the rebuilt catalog on real hardware, then implement picker-side rules in `main.c` based on what actually works for users.
-
-**Approach:** keep the **no-filtering** picker for initial hardware tests so we observe the full installed library behavior. Filtering and homebrew UX will be expanded only after test feedback.
-
-- [ ] Hardware test pass with 8,714-entry database (name resolution, reroll behavior, launch success)
-- [ ] Document which title types users want included/excluded (base, VC, DSiWare, updates, DLC, system, homebrew)
-- [ ] Implement content-category and/or user-configurable picker filters in `main.c`
-- [ ] Expand homebrew mode (SMDH names, clearer UI, optional separate pool)
-- [ ] Update user-facing docs once filter defaults are chosen
+- [x] Implement content-category picker filters in `main.c` / `title_picker.c` (patches, DLC, system — off by default)
+- [x] SMDH-primary display names with catalog fallback
+- [x] Homebrew mode uses catalog as allowlist (OFF) or includes unknown titles (ON)
+- [x] SELECT filter menu for testing UI
+- [ ] Hardware test pass with real SD libraries
+- [ ] Refine end-user GUI after testing feedback
 
 ### Data sources reference
 
@@ -161,9 +158,9 @@ Merge result (May 2026): **8,714** unique CTR title IDs — up from **4,135** in
 
 ---
 
-## Layer 2 — On-device SMDH fallback
+## Layer 2 — On-device SMDH (primary names)
 
-**Goal:** When the static DB misses, read the **installed title's own name** from SMDH metadata (same data the Home Menu uses). Works offline and matches what's actually on the SD card.
+**Status:** SMDH reads are implemented. Display names use SMDH first; the static database is fallback only. Full metadata pages (L/R) are available for hardware testing.
 
 ### How it works
 

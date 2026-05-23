@@ -91,3 +91,70 @@ void title_meta_format_version(u8 major, u8 minor, char *buf, size_t bufSize)
 
 	snprintf(buf, bufSize, "v%u.%u", major, minor);
 }
+
+u16 title_meta_decode_category(u64 titleId)
+{
+	return (u16)(((u32)(titleId >> 32)) & 0xFFFF);
+}
+
+bool title_meta_is_patch(u16 category)
+{
+	return category == 0x000E || category == 0x000B;
+}
+
+bool title_meta_is_dlc(u16 category)
+{
+	return category == 0x008C;
+}
+
+bool title_meta_is_system(u16 category)
+{
+	return category >= 0x0005 && category <= 0x0009;
+}
+
+bool title_meta_is_demo(u16 category)
+{
+	return category == 0x0002 || category == 0x000C;
+}
+
+bool title_meta_is_dsiware(u16 category)
+{
+	return category == 0x0004 || category == 0x000D;
+}
+
+bool title_meta_is_content_pack(u16 category)
+{
+	return category == 0x0003;
+}
+
+bool title_meta_passes_filters(u16 category, const title_filter_options_t *filters)
+{
+	if (filters == NULL)
+		return false;
+
+	if (title_meta_is_patch(category))
+		return filters->include_patches;
+
+	if (title_meta_is_dlc(category))
+		return filters->include_dlc;
+
+	if (title_meta_is_system(category))
+		return filters->include_system;
+
+	if (category == 0x0001 || category == 0x000A)
+		return false;
+
+	if (category == 0x000F)
+		return false;
+
+	if (title_meta_is_demo(category))
+		return filters->include_demos;
+
+	if (title_meta_is_dsiware(category))
+		return filters->include_dsiware;
+
+	if (title_meta_is_content_pack(category))
+		return filters->include_content_packs;
+
+	return true;
+}

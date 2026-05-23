@@ -5,6 +5,7 @@
 #include <time.h>
 #include "title_database.h"
 #include "title_meta.h"
+#include "title_picker.h"
 #include "title_smdh.h"
 
 #ifndef APP_VERSION
@@ -13,21 +14,40 @@
 
 #define TITLE_PAGE_COUNT 3
 
+#define FILTER_ROW_PATCHES 0
+#define FILTER_ROW_DLC 1
+#define FILTER_ROW_SYSTEM 2
+#define FILTER_ROW_DEMOS 3
+#define FILTER_ROW_DSIWARE 4
+#define FILTER_ROW_CONTENT 5
+#define FILTER_ROW_HOMEBREW 6
+#define FILTER_ROW_COUNT 7
+
 static bool g_include_homebrew = false;
+static title_filter_options_t g_filters = { false, false, false, true, true, true };
 
 typedef struct {
-	u64 titleId;
-	const char *dbName;
-	title_smdh_info_t smdh;
-	title_meta_t meta;
+	title_pick_t pick;
 	u32 page;
-} picked_title_t;
+} picked_view_t;
 
 static void clear_and_redraw_header(void)
 {
 	consoleClear();
 	printf("\n\x1b[37mRANDOM GAME LAUNCHER\x1b[0m\n");
 	printf("\x1b[90mv%s\x1b[0m\n\n", APP_VERSION);
+}
+
+static const char *name_source_label(title_name_source_t source)
+{
+	switch (source) {
+	case TITLE_NAME_SOURCE_SMDH:
+		return "SMDH";
+	case TITLE_NAME_SOURCE_CATALOG:
+		return "Catalog fallback";
+	default:
+		return "Title ID";
+	}
 }
 
 static void print_label_value(const char *label, const char *value)
@@ -61,13 +81,22 @@ static void print_smdh_status(const title_smdh_info_t *smdh)
 	printf("\x1b[0m\n");
 }
 
-static void print_page_summary(const picked_title_t *pick)
+static void print_page_summary(const title_pick_t *pick)
 {
 	char version[16];
 	char size[32];
 
-	print_label_value("Database", pick->dbName);
-	print_label_value("SMDH short", pick->smdh.short_name);
+	print_label_value("Name", pick->display_name);
+	printf("\x1b[90mName source:\x1b[0m %s\n", name_source_label(pick->name_source));
+
+	if (pick->name_source == TITLE_NAME_SOURCE_CATALOG && pick->catalog_name != NULL)
+		print_label_value("Catalog fallback", pick->catalog_name);
+
+	if (pick->is_homebrew)
+		printf("\x1b[90mHomebrew:\x1b[0m \x1b[1;37mYes\x1b[0m\n");
+	else if (g_include_homebrew)
+		printf("\x1b[90mHomebrew:\x1b[0m No\n");
+
 	print_smdh_status(&pick->smdh);
 	printf("\x1b[90mTitle ID:\x1b[0m %016llx\n", pick->titleId);
 	print_label_value("Category", title_meta_category_name(pick->meta.content_category));
@@ -84,7 +113,7 @@ static void print_page_summary(const picked_title_t *pick)
 	}
 }
 
-static void print_page_smdh(const picked_title_t *pick)
+static void print_page_smdh(const title_pick_t *pick)
 {
 	char ratings[TITLE_SMDH_LINE_UTF8_MAX];
 	char region[TITLE_SMDH_LINE_UTF8_MAX];
@@ -109,7 +138,7 @@ static void print_page_smdh(const picked_title_t *pick)
 	printf("\x1b[90mStreetPass ID:\x1b[0m %08lX\n", pick->smdh.cec_id);
 }
 
-static void print_page_system(const picked_title_t *pick)
+static void print_page_system(const title_pick_t *pick)
 {
 	char size[32];
 	char version[16];
@@ -153,9 +182,23 @@ static void print_page_system(const picked_title_t *pick)
 	printf("\x1b[90mMedia:\x1b[0m SD\n");
 }
 
+static void print_filter_status_line(void)
+{
+	printf("\x1b[90mFilters:\x1b[0m Patches %s | DLC %s | System %s\n",
+		g_filters.include_patches ? "ON" : "off",
+		g_filters.include_dlc ? "ON" : "off",
+		g_filters.include_system ? "ON" : "off");
+	printf("\x1b[90m         \x1b[0m Demos %s | DSiWare %s | Content %s\n",
+		g_filters.include_demos ? "ON" : "off",
+		g_filters.include_dsiware ? "ON" : "off",
+		g_filters.include_content_packs ? "ON" : "off");
+}
+
 static void print_controls(void)
 {
 	printf("\n\x1b[90mL / R: info pages\x1b[0m\n");
+	printf("\x1b[90mSELECT: filter menu\x1b[0m\n");
+	print_filter_status_line();
 	printf("\x1b[37mPress A to launch\x1b[0m\n");
 	printf("\x1b[37mPress Y to throw the dice again\x1b[0m\n\n");
 	printf("\x1b[90mPress X to toggle homebrew mode\x1b[0m\n");
@@ -163,20 +206,20 @@ static void print_controls(void)
 	printf("\x1b[90mPress START to exit\x1b[0m\n");
 }
 
-static void print_picked_title(const picked_title_t *pick)
+static void print_picked_view(const picked_view_t *view)
 {
 	clear_and_redraw_header();
-	printf("\x1b[90mPage %lu/%d\x1b[0m\n\n", pick->page + 1, TITLE_PAGE_COUNT);
+	printf("\x1b[90mPage %lu/%d\x1b[0m\n\n", view->page + 1, TITLE_PAGE_COUNT);
 
-	switch (pick->page) {
+	switch (view->page) {
 	case 0:
-		print_page_summary(pick);
+		print_page_summary(&view->pick);
 		break;
 	case 1:
-		print_page_smdh(pick);
+		print_page_smdh(&view->pick);
 		break;
 	case 2:
-		print_page_system(pick);
+		print_page_system(&view->pick);
 		break;
 	default:
 		break;
@@ -185,14 +228,149 @@ static void print_picked_title(const picked_title_t *pick)
 	print_controls();
 }
 
-static void load_picked_title(u64 titleId, const char *dbName, picked_title_t *pick)
+static bool filter_row_enabled(u32 row)
 {
-	memset(pick, 0, sizeof(*pick));
-	pick->titleId = titleId;
-	pick->dbName = dbName;
-	pick->page = 0;
-	title_smdh_load(titleId, MEDIATYPE_SD, &pick->smdh);
-	title_meta_load(titleId, MEDIATYPE_SD, &pick->meta);
+	switch (row) {
+	case FILTER_ROW_PATCHES:
+		return g_filters.include_patches;
+	case FILTER_ROW_DLC:
+		return g_filters.include_dlc;
+	case FILTER_ROW_SYSTEM:
+		return g_filters.include_system;
+	case FILTER_ROW_DEMOS:
+		return g_filters.include_demos;
+	case FILTER_ROW_DSIWARE:
+		return g_filters.include_dsiware;
+	case FILTER_ROW_CONTENT:
+		return g_filters.include_content_packs;
+	case FILTER_ROW_HOMEBREW:
+		return g_include_homebrew;
+	default:
+		return false;
+	}
+}
+
+static void toggle_filter_row(u32 row)
+{
+	switch (row) {
+	case FILTER_ROW_PATCHES:
+		g_filters.include_patches = !g_filters.include_patches;
+		break;
+	case FILTER_ROW_DLC:
+		g_filters.include_dlc = !g_filters.include_dlc;
+		break;
+	case FILTER_ROW_SYSTEM:
+		g_filters.include_system = !g_filters.include_system;
+		break;
+	case FILTER_ROW_DEMOS:
+		g_filters.include_demos = !g_filters.include_demos;
+		break;
+	case FILTER_ROW_DSIWARE:
+		g_filters.include_dsiware = !g_filters.include_dsiware;
+		break;
+	case FILTER_ROW_CONTENT:
+		g_filters.include_content_packs = !g_filters.include_content_packs;
+		break;
+	case FILTER_ROW_HOMEBREW:
+		g_include_homebrew = !g_include_homebrew;
+		break;
+	default:
+		break;
+	}
+}
+
+static const char *filter_row_label(u32 row)
+{
+	switch (row) {
+	case FILTER_ROW_PATCHES:
+		return "Include patches";
+	case FILTER_ROW_DLC:
+		return "Include DLC";
+	case FILTER_ROW_SYSTEM:
+		return "Include system titles";
+	case FILTER_ROW_DEMOS:
+		return "Include demos";
+	case FILTER_ROW_DSIWARE:
+		return "Include DSiWare";
+	case FILTER_ROW_CONTENT:
+		return "Include content packs";
+	case FILTER_ROW_HOMEBREW:
+		return "Homebrew mode";
+	default:
+		return "";
+	}
+}
+
+static void draw_filter_menu(u32 cursor)
+{
+	u32 row;
+
+	consoleClear();
+	printf("\n\x1b[37mPicker filters\x1b[0m\n\n");
+
+	for (row = 0; row < FILTER_ROW_COUNT; row++) {
+		if (row == cursor)
+			printf("\x1b[1;37m> ");
+		else
+			printf("  ");
+
+		printf("%s: %s\x1b[0m\n", filter_row_label(row),
+			filter_row_enabled(row) ? "\x1b[37mON" : "\x1b[90mOFF");
+	}
+
+	printf("\n\x1b[90mUp/Down: move  A: toggle\x1b[0m\n");
+	printf("\x1b[90mB or SELECT: close\x1b[0m\n");
+}
+
+static bool run_filter_menu(void)
+{
+	u32 cursor = 0;
+	bool changed = false;
+
+	draw_filter_menu(cursor);
+
+	while (aptMainLoop()) {
+		gspWaitForVBlank();
+		gfxSwapBuffers();
+		hidScanInput();
+
+		u32 kDown = hidKeysDown();
+
+		if (kDown & (KEY_B | KEY_SELECT))
+			break;
+
+		if (kDown & KEY_UP) {
+			cursor = (cursor + FILTER_ROW_COUNT - 1) % FILTER_ROW_COUNT;
+			draw_filter_menu(cursor);
+		} else if (kDown & KEY_DOWN) {
+			cursor = (cursor + 1) % FILTER_ROW_COUNT;
+			draw_filter_menu(cursor);
+		} else if (kDown & KEY_A) {
+			toggle_filter_row(cursor);
+			changed = true;
+			draw_filter_menu(cursor);
+		}
+	}
+
+	return changed;
+}
+
+static void wait_for_start_exit(void)
+{
+	while (aptMainLoop()) {
+		gspWaitForVBlank();
+		gfxSwapBuffers();
+		hidScanInput();
+
+		if (hidKeysDown() & KEY_START)
+			break;
+	}
+}
+
+static bool pick_random_title(const u64 *titleIds, u32 titleCount, const title_picker_pool_t *pool,
+	u64 *outTitleId)
+{
+	return title_picker_pick_random(pool, titleIds, titleCount, outTitleId, NULL);
 }
 
 int main()
@@ -215,6 +393,7 @@ int main()
 
 	u32 readTitlesAmount;
 	u64 readTitlesID[900] = {};
+	title_picker_pool_t pool;
 
 	res = AM_GetTitleList(&readTitlesAmount, MEDIATYPE_SD, 900, readTitlesID);
 	if (R_FAILED(res))
@@ -227,66 +406,48 @@ int main()
 		printf("Please install some games to your 3DS SD card\n");
 		printf("and try again.\n\n");
 		printf("Press START to exit\n\n");
-
-		while (aptMainLoop()) {
-			gspWaitForVBlank();
-			gfxSwapBuffers();
-			hidScanInput();
-
-			if (hidKeysDown() & KEY_START)
-				break;
-		}
-
+		wait_for_start_exit();
 		goto cleanup_normal;
 	}
 
 	srand((unsigned)time(&t));
+	title_picker_rebuild_pool(&pool, readTitlesID, readTitlesAmount, &g_filters, g_include_homebrew);
 
-randomPicker:
-	u64 randomTitle = 0;
-	const char *gameName = NULL;
-	picked_title_t pick;
-	u32 attempts = 0;
-	const u32 max_attempts = 100;
-
-	while ((randomTitle == 0 || gameName == NULL) && attempts < max_attempts) {
-		attempts++;
-		u32 randomTitlePicked = rand() % readTitlesAmount;
-
-		randomTitle = readTitlesID[randomTitlePicked];
-		gameName = lookup_game_name(randomTitle);
-		if (gameName == NULL) {
-			if (g_include_homebrew) {
-				gameName = NULL;
-				break;
-			}
-			randomTitle = 0;
-			gameName = NULL;
-		} else {
-			break;
-		}
-	}
-
-	if (attempts >= max_attempts) {
-		printf("Failed to find a valid game after %lu attempts!\n", max_attempts);
-		printf("This may indicate an issue with your game library\n");
-		printf("or the title database.\n\n");
+	if (pool.count == 0) {
+		clear_and_redraw_header();
+		printf("No titles match current filters.\n\n");
+		printf("Open SELECT to adjust filters,\n");
+		printf("or install more titles on SD.\n\n");
 		printf("Press START to exit\n\n");
-
-		while (aptMainLoop()) {
-			gspWaitForVBlank();
-			gfxSwapBuffers();
-			hidScanInput();
-
-			if (hidKeysDown() & KEY_START)
-				break;
-		}
-
+		wait_for_start_exit();
 		goto cleanup_normal;
 	}
 
-	load_picked_title(randomTitle, gameName, &pick);
-	print_picked_title(&pick);
+randomPicker:
+	if (pool.count == 0) {
+		clear_and_redraw_header();
+		printf("No titles match current filters.\n\n");
+		printf("Open SELECT to adjust filters.\n\n");
+		printf("Press START to exit\n\n");
+		wait_for_start_exit();
+		goto cleanup_normal;
+	}
+
+	u64 randomTitle = 0;
+	picked_view_t view;
+	memset(&view, 0, sizeof(view));
+	view.page = 0;
+
+	if (!pick_random_title(readTitlesID, readTitlesAmount, &pool, &randomTitle)) {
+		clear_and_redraw_header();
+		printf("Failed to pick a random title.\n\n");
+		printf("Press START to exit\n\n");
+		wait_for_start_exit();
+		goto cleanup_normal;
+	}
+
+	title_picker_load_pick(randomTitle, MEDIATYPE_SD, g_include_homebrew, &view.pick);
+	print_picked_view(&view);
 
 	while (aptMainLoop()) {
 		gspWaitForVBlank();
@@ -299,11 +460,7 @@ randomPicker:
 			break;
 
 		if (kDown & KEY_A) {
-			if (gameName != NULL)
-				printf("Launching %s...\n", gameName);
-			else
-				printf("Launching %016llx...\n", randomTitle);
-
+			printf("Launching %s...\n", view.pick.display_name);
 			aptSetChainloader(randomTitle, MEDIATYPE_SD);
 			break;
 		}
@@ -314,17 +471,31 @@ randomPicker:
 
 		if (kDown & KEY_X) {
 			g_include_homebrew = !g_include_homebrew;
-			print_picked_title(&pick);
+			title_picker_rebuild_pool(&pool, readTitlesID, readTitlesAmount, &g_filters, g_include_homebrew);
+			if (!title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
+				goto randomPicker;
+			title_picker_load_pick(randomTitle, MEDIATYPE_SD, g_include_homebrew, &view.pick);
+			print_picked_view(&view);
+		}
+
+		if (kDown & KEY_SELECT) {
+			if (run_filter_menu()) {
+				title_picker_rebuild_pool(&pool, readTitlesID, readTitlesAmount, &g_filters, g_include_homebrew);
+				if (!title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
+					goto randomPicker;
+				title_picker_load_pick(randomTitle, MEDIATYPE_SD, g_include_homebrew, &view.pick);
+			}
+			print_picked_view(&view);
 		}
 
 		if (kDown & KEY_L) {
-			pick.page = (pick.page + TITLE_PAGE_COUNT - 1) % TITLE_PAGE_COUNT;
-			print_picked_title(&pick);
+			view.page = (view.page + TITLE_PAGE_COUNT - 1) % TITLE_PAGE_COUNT;
+			print_picked_view(&view);
 		}
 
 		if (kDown & KEY_R) {
-			pick.page = (pick.page + 1) % TITLE_PAGE_COUNT;
-			print_picked_title(&pick);
+			view.page = (view.page + 1) % TITLE_PAGE_COUNT;
+			print_picked_view(&view);
 		}
 	}
 
@@ -332,15 +503,7 @@ randomPicker:
 
 cleanup_error:
 	printf("Press START to exit\n\n");
-
-	while (aptMainLoop()) {
-		gspWaitForVBlank();
-		gfxSwapBuffers();
-		hidScanInput();
-
-		if (hidKeysDown() & KEY_START)
-			break;
-	}
+	wait_for_start_exit();
 
 cleanup_normal:
 	if (fsReady)
