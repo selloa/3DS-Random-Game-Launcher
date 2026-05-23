@@ -27,7 +27,7 @@ The app is on [Universal-DB](https://db.universal-team.net/3ds/3ds-random-game-l
 - **Unlisted mode** for homebrew and titles not in the database (requires a readable SMDH name)
 - **Options saved to SD** — your filters and preferences persist between sessions
 
-While viewing a pick, use **A/B** to page through game, detail, and technical info screens.
+While viewing a pick, use **L/R** to page through game, detail, and technical info screens.
 
 ## Controls
 
@@ -35,6 +35,7 @@ While viewing a pick, use **A/B** to page through game, detail, and technical in
 |--------|--------|
 | **A** | Launch the selected title |
 | **Y** | Reroll |
+| **L / R** | Change info page |
 | **X** | Quick toggle unlisted/homebrew-only mode |
 | **SELECT** | Options / filters |
 | **START** | Exit |
