@@ -157,3 +157,11 @@ void title_picker_load_pick(u64 titleId, FS_MediaType media, bool include_homebr
 	title_picker_resolve_display_name(titleId, &pick->smdh, pick->catalog_name, prefer_long_name,
 		pick->display_name, sizeof(pick->display_name), &pick->name_source);
 }
+
+bool title_picker_unlisted_needs_reroll(bool unlisted_only, const title_pick_t *pick)
+{
+	if (!unlisted_only || pick == NULL)
+		return false;
+
+	return pick->name_source != TITLE_NAME_SOURCE_SMDH;
+}

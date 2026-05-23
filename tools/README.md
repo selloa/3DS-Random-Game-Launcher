@@ -45,7 +45,7 @@ If you prefer to run steps yourself:
 
 ```bat
 tools\bin\bannertool.exe makebanner -i meta\cia-banner.png -a meta\audio.wav -o build\banner.bnr
-tools\bin\bannertool.exe makesmdh -s "3DS Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
+tools\bin\bannertool.exe makesmdh -s "3DS Random Game Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
 ```
 
 3. Package with makerom:

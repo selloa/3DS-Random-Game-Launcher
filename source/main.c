@@ -8,6 +8,7 @@
 #include "title_picker.h"
 #include "title_smdh.h"
 #include "ui.h"
+#include "settings.h"
 
 #define FILTER_ROW_NATIVE 0
 #define FILTER_ROW_VC 1
@@ -28,7 +29,7 @@ static bool g_include_homebrew = false;
 static bool g_include_sd = true;
 static bool g_include_nand = false;
 static bool g_prefer_long_name = true;
-static title_filter_options_t g_filters = { false, false, false, true, true, true, true, true };
+static title_filter_options_t g_filters = { false, false, false, true, false, false, true, true };
 static u32 g_sd_title_count = 0;
 static u32 g_nand_title_count = 0;
 static u32 g_eligible_title_count = 0;
@@ -104,20 +105,71 @@ static ui_view_t make_ui_view(const picked_view_t *view)
 	return ui;
 }
 
+static void apply_launcher_settings(const launcher_settings_t *settings)
+{
+	if (settings == NULL)
+		return;
+
+	g_include_homebrew = settings->include_unlisted;
+	g_include_sd = settings->include_sd;
+	g_include_nand = settings->include_nand;
+	g_prefer_long_name = settings->prefer_long_name;
+	g_filters = settings->filters;
+}
+
+static void read_launcher_settings(launcher_settings_t *settings)
+{
+	if (settings == NULL)
+		return;
+
+	settings->include_unlisted = g_include_homebrew;
+	settings->include_sd = g_include_sd;
+	settings->include_nand = g_include_nand;
+	settings->prefer_long_name = g_prefer_long_name;
+	settings->filters = g_filters;
+}
+
 static void apply_default_filter_settings(void)
 {
-	g_include_homebrew = false;
-	g_include_sd = true;
-	g_include_nand = false;
-	g_filters.include_patches = false;
-	g_filters.include_dlc = false;
-	g_filters.include_system = false;
-	g_filters.include_demos = true;
-	g_filters.include_dsiware = true;
-	g_filters.include_content_packs = true;
-	g_filters.include_native_apps = true;
-	g_filters.include_virtual_console = true;
-	g_prefer_long_name = true;
+	launcher_settings_t settings;
+
+	launcher_settings_apply_defaults(&settings);
+	apply_launcher_settings(&settings);
+}
+
+static void persist_launcher_settings(void)
+{
+	launcher_settings_t settings;
+
+	read_launcher_settings(&settings);
+	if (launcher_settings_match_defaults(&settings))
+		launcher_settings_delete();
+	else
+		launcher_settings_save(&settings);
+}
+
+static bool run_restore_defaults_confirm(void)
+{
+	consoleClear();
+	printf("\n\x1b[37mRestore defaults?\x1b[0m\n\n");
+	printf("Resets all options and deletes\n");
+	printf("your saved settings file.\n\n");
+	printf("\x1b[37mA\x1b[0m Confirm   \x1b[37mB\x1b[0m Cancel\n");
+
+	while (aptMainLoop()) {
+		gspWaitForVBlank();
+		gfxSwapBuffers();
+		hidScanInput();
+
+		u32 kDown = hidKeysDown();
+
+		if (kDown & KEY_A)
+			return true;
+		if (kDown & KEY_B)
+			return false;
+	}
+
+	return false;
 }
 
 static void print_picked_view(const picked_view_t *view)
@@ -264,8 +316,11 @@ static bool run_filter_menu(title_picker_pool_t *pool)
 
 		u32 kDown = hidKeysDown();
 
-		if (kDown & (KEY_B | KEY_SELECT))
+		if (kDown & (KEY_B | KEY_SELECT)) {
+			if (changed)
+				persist_launcher_settings();
 			break;
+		}
 
 		if (kDown & KEY_UP) {
 			cursor = (cursor + FILTER_ROW_COUNT - 1) % FILTER_ROW_COUNT;
@@ -274,12 +329,18 @@ static bool run_filter_menu(title_picker_pool_t *pool)
 			cursor = (cursor + 1) % FILTER_ROW_COUNT;
 			draw_filter_menu(cursor, pool);
 		} else if (kDown & KEY_A) {
-			if (filter_row_is_action(cursor))
-				apply_default_filter_settings();
-			else
+			if (filter_row_is_action(cursor)) {
+				if (run_restore_defaults_confirm()) {
+					apply_default_filter_settings();
+					launcher_settings_delete();
+					changed = true;
+					rebuild_eligible_pool(pool);
+				}
+			} else {
 				toggle_filter_row(cursor);
-			changed = true;
-			rebuild_eligible_pool(pool);
+				changed = true;
+				rebuild_eligible_pool(pool);
+			}
 			draw_filter_menu(cursor, pool);
 		}
 	}
@@ -332,6 +393,56 @@ static bool pick_random_title(const title_picker_pool_t *pool, u64 *outTitleId, 
 	return title_picker_pick_random(pool, g_active_titles, g_active_title_count, outTitleId, outMedia, NULL);
 }
 
+static bool pick_and_load_random_title(const title_picker_pool_t *pool, picked_view_t *view,
+	u64 *outTitleId, FS_MediaType *outMedia)
+{
+	u32 i;
+
+	if (pool == NULL || pool->count == 0)
+		return false;
+
+	for (i = 0; i < pool->count; i++) {
+		if (!pick_random_title(pool, outTitleId, outMedia))
+			return false;
+
+		title_picker_load_pick(*outTitleId, *outMedia, g_include_homebrew, g_prefer_long_name, &view->pick);
+		if (!title_picker_unlisted_needs_reroll(g_include_homebrew, &view->pick))
+			return true;
+	}
+
+	return false;
+}
+
+static bool run_unlisted_unnamed_screen(title_picker_pool_t *pool)
+{
+	for (;;) {
+		ui_draw_header();
+		printf("\nNo unlisted titles with readable names.\n\n");
+		printf("Turn off \x1b[90mUnlisted\x1b[0m or install titles with icons.\n\n");
+		printf("\x1b[90mSELECT\x1b[0m Options   \x1b[90mSTART\x1b[0m Exit\n");
+
+		while (aptMainLoop()) {
+			gspWaitForVBlank();
+			gfxSwapBuffers();
+			hidScanInput();
+
+			u32 kDown = hidKeysDown();
+
+			if (kDown & KEY_START)
+				return false;
+
+			if (kDown & KEY_SELECT) {
+				if (run_filter_menu(pool)) {
+					rebuild_eligible_pool(pool);
+					if (!g_include_homebrew || pool->count == 0)
+						return true;
+				}
+				break;
+			}
+		}
+	}
+}
+
 int main()
 {
 	Result res = 0;
@@ -349,6 +460,13 @@ int main()
 	if (R_FAILED(res))
 		goto cleanup_error;
 	fsReady = true;
+
+	{
+		launcher_settings_t settings;
+
+		if (launcher_settings_load(&settings))
+			apply_launcher_settings(&settings);
+	}
 
 	u32 readTitlesAmount;
 	title_picker_pool_t pool;
@@ -393,15 +511,19 @@ randomPicker:
 	memset(&view, 0, sizeof(view));
 	view.page = 0;
 
-	if (!pick_random_title(&pool, &randomTitle, &randomMedia)) {
+	if (!pick_and_load_random_title(&pool, &view, &randomTitle, &randomMedia)) {
+		if (g_include_homebrew && pool.count > 0) {
+			if (!run_unlisted_unnamed_screen(&pool))
+				goto cleanup_normal;
+			goto randomPicker;
+		}
+
 		ui_draw_header();
 		printf("\nFailed to pick a random title.\n\n");
 		printf("\x1b[90mSTART\x1b[0m Exit\n\n");
 		wait_for_start_exit();
 		goto cleanup_normal;
 	}
-
-	title_picker_load_pick(randomTitle, randomMedia, g_include_homebrew, g_prefer_long_name, &view.pick);
 	print_picked_view(&view);
 
 	while (aptMainLoop()) {
@@ -431,6 +553,8 @@ randomPicker:
 				goto randomPicker;
 			title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, g_prefer_long_name,
 				&view.pick);
+			if (title_picker_unlisted_needs_reroll(g_include_homebrew, &view.pick))
+				goto randomPicker;
 			print_picked_view(&view);
 		}
 
@@ -440,7 +564,9 @@ randomPicker:
 				if (pool.count == 0 || !title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
 					goto randomPicker;
 				title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, g_prefer_long_name,
-				&view.pick);
+					&view.pick);
+				if (title_picker_unlisted_needs_reroll(g_include_homebrew, &view.pick))
+					goto randomPicker;
 			}
 			print_picked_view(&view);
 		}

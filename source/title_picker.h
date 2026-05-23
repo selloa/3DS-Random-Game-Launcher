@@ -52,4 +52,6 @@ void title_picker_load_pick(u64 titleId, FS_MediaType media, bool include_homebr
 void title_picker_resolve_display_name(u64 titleId, const title_smdh_info_t *smdh, const char *catalogName,
 	bool prefer_long_name, char *out, size_t outSize, title_name_source_t *outSource);
 
+bool title_picker_unlisted_needs_reroll(bool unlisted_only, const title_pick_t *pick);
+
 #endif

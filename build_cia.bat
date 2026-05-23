@@ -30,7 +30,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-tools\bin\bannertool.exe makesmdh -s "3DS Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
+tools\bin\bannertool.exe makesmdh -s "3DS Random Game Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
 if %errorlevel% neq 0 (
     echo.
     echo bannertool makesmdh failed!
