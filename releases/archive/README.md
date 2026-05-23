@@ -1,22 +1,16 @@
 # CIA archive
 
-Tracked copies of installable `.cia` builds for reference and CIA packaging work.
+Tracked copies of installable `.cia` builds for reference.
 
 | File | Source | Notes |
 |------|--------|-------|
 | `3DS-Random-Game-Launcher-v18.cia` | [GitHub Release v18](https://github.com/selloa/3DS-Random-Game-Launcher/releases/tag/v18) | **0.1.8** — last published release (Sep 2025, was tagged v18-beta) |
 | `3DS-Random-Game-Launcher-pre-cleanup.cia` | Git history (`b8685f7^`) | Older experimental build from repo root (187 KB) |
 
-## Not recoverable
+## Rebuilding newer versions
 
-These were **untracked** local builds in `CBuilder3DS/` and were permanently removed by `git clean` during submodule cleanup:
-
-- `3DS-Random-Game-Launcher v19.cia` → would have been **0.1.9** (see [`VERSION`](../../VERSION))
-- `3DS-Random-Game-Launcherv20.cia` → would have been **0.1.10**
-- `3DS-Random-Game-Launcher.cia` (unversioned copy in CBuilder3DS)
-
-They were never committed to git. Rebuild with the CIA workflow in [tools/README.md](../tools/README.md) to replace them.
+Run `build_cia.bat` at the repo root (or follow [tools/README.md](../../tools/README.md)). Output goes to `dist/3DS-Random-Game-Launcher-v<VERSION>.cia`. Copy here only when you want a tracked archive copy.
 
 ## Usage
 
-Install on CFW with FBI or similar. For new builds, output to `dist/` (gitignored) and copy here only when you want a tracked archive copy.
+Install on CFW with FBI or similar.

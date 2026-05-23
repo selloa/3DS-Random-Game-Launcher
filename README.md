@@ -12,7 +12,7 @@ Can't decide what to play? Let your 3DS pick for you.
 | `scripts/` | Python tools to refresh the title database |
 | `meta/`, `unistore.json` | Universal Updater distribution assets |
 | `tools/` | CIA build binaries, RSF, and tooling docs |
-| `bannertool/`, `CBuilder3DS/` | CIA packaging submodules (see [tools/README.md](tools/README.md)) |
+| `build_cia.bat` | One-step `.cia` packaging (Windows) |
 | `docs/` | Developer and tester documentation |
 
 **Roadmap:** [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — offline catalog (rebuilt), hardware testing, picker filtering, on-device SMDH fallback.
@@ -90,7 +90,7 @@ Debug builds include the `-debug` suffix and show verbose output during executio
 
 ### CIA builds
 
-Installable `.cia` packaging is supported via the tooling in `tools/`. See [tools/README.md](tools/README.md) for setup (includes git submodules for bannertool and CBuilder3DS).
+Installable `.cia` packaging uses prebuilt tools in `tools/bin/` — no submodules. Run `build_cia.bat` or see [tools/README.md](tools/README.md).
 
 ### Documentation
 

@@ -1,6 +1,0 @@
-[submodule "bannertool"]
-	path = bannertool
-	url = https://github.com/diasurgical/bannertool.git
-[submodule "CBuilder3DS"]
-	path = CBuilder3DS
-	url = https://github.com/slalomsquid/CBuilder3DS.git
