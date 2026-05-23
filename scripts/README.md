@@ -4,13 +4,17 @@ Python utilities for maintaining `source/title_database.c`.
 
 ## Recommended workflow
 
-Use **`fetch_3dsdb_complete.py`** — it pulls all regions (USA, EUR, JPN) from the [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb) JSON files and generates C code.
+Use **`fetch_3dsdb_complete.py`** — it pulls all regions from [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb) (`list_US.json`, `list_GB.json`, `list_JP.json`, etc.) and regenerates `source/title_database.c`.
 
 ```bash
+# Preview fetch (writes source/title_database_generated.c, does not overwrite)
+python scripts/fetch_3dsdb_complete.py --dry-run
+
+# Replace title_database.c (creates a timestamped backup first)
 python scripts/fetch_3dsdb_complete.py
 ```
 
-Review the output, merge entries into `source/title_database.c`, then rebuild with `make`.
+Then rebuild with `make` or `build.bat release`.
 
 ## All scripts
 
@@ -20,7 +24,7 @@ Review the output, merge entries into `source/title_database.c`, then rebuild wi
 | `fetch_3dsdb_api.py` | Legacy | Fetches from `api.ghseshop.cc` |
 | `fetch_3dsdb_batch.py` | Legacy | Batch variant of the API fetch |
 | `expand_database.py` | Legacy | Fetches from 3dsdb.com XML export |
-| `fix_display_issues.py` | Utility | Fixes TM, apostrophe, and display characters in the database |
+| `fix_display_issues.py` | Utility | Cleans TM, HTML tags, and display characters in an existing `.c` file (also applied automatically during fetch) |
 
 The legacy fetch scripts predate `fetch_3dsdb_complete.py`. Keep them for reference or delete once you confirm the complete script covers your needs.
 

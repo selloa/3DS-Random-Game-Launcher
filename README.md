@@ -15,6 +15,8 @@ Can't decide what to play? Let your 3DS pick for you.
 | `makerom/`, `bannertool/`, `CBuilder3DS/` | CIA packaging (see [tools/README.md](tools/README.md)) |
 | `docs/` | Developer and tester documentation |
 
+**Roadmap:** [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — planned improvements to title name resolution (offline DB + on-device SMDH fallback).
+
 **Quick start for development:** edit `source/`, run `make` or `build.bat release`, grab the `.3dsx` from `dist/`.
 
 ## What it does
@@ -92,6 +94,7 @@ Installable `.cia` packaging is supported via the tooling in `tools/`. See [tool
 ### Documentation
 
 - [docs/README.md](docs/README.md) — full doc index
+- [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — title lookup roadmap
 - [docs/MAIN_C_FUNCTIONALITY.md](docs/MAIN_C_FUNCTIONALITY.md) — how `main.c` works
 - [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) — testing checklist
 

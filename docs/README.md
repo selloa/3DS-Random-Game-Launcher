@@ -2,6 +2,7 @@
 
 | Document | Description |
 |----------|-------------|
+| [TITLE_RESOLUTION_ROADMAP.md](TITLE_RESOLUTION_ROADMAP.md) | **Roadmap** — offline DB + on-device SMDH title lookup |
 | [MAIN_C_FUNCTIONALITY.md](MAIN_C_FUNCTIONALITY.md) | Deep dive into `source/main.c` |
 | [DEBUG_IMPROVEMENTS.md](DEBUG_IMPROVEMENTS.md) | Debug logging and error handling |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | Tester checklist and bug reporting |
