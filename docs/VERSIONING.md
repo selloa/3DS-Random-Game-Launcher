@@ -6,7 +6,7 @@ The **single source of truth** is the [`VERSION`](../VERSION) file at the reposi
 
 ## Current version
 
-See [`VERSION`](../VERSION). Builds and release tags use the `v` prefix (e.g. `0.1.9` → tag `v0.1.9`).
+See [`VERSION`](../VERSION). Builds and release tags use the `v` prefix (e.g. `0.2.0` → tag `v0.2.0`).
 
 ## Legacy integer versions
 
