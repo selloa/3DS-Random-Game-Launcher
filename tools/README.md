@@ -7,10 +7,9 @@ Tools and source for building installable `.cia` files. The main app build (`mak
 | Path | Purpose |
 |------|---------|
 | `tools/bin/bannertool.exe` | Creates `.bnr` banner and `.icn` icon files (v1.2.0) |
-| `tools/bin/makerom.exe` | Prebuilt CTR makerom (Windows) |
+| `tools/bin/makerom.exe` | Prebuilt CTR makerom (Windows); see [Updating makerom](#updating-makerom) |
 | `tools/bin/ctrtool.exe` | Prebuilt ctrtool for inspecting NCCH/CIA |
 | `tools/3DS-Random-Game-Launcher.rsf` | RSF metadata for this title |
-| `makerom/` | makerom source (rebuild if needed) |
 | `bannertool/` | [diasurgical/bannertool](https://github.com/diasurgical/bannertool) submodule — source for bannertool |
 | `CBuilder3DS/` | [slalomsquid/CBuilder3DS](https://github.com/slalomsquid/CBuilder3DS) submodule — reference CIA build workflow |
 
@@ -95,7 +94,7 @@ tools/bin/makerom.exe -f cia -o dist/3DS-Random-Game-Launcher.cia ^
   -icon icon.icn -banner banner.bnr -desc app:4
 ```
 
-Adjust paths and add `-exefslogo` as needed. See `makerom/README.md` for full options.
+Adjust paths and add `-exefslogo` as needed. See the [makerom README](https://github.com/3DSGuy/Project_CTR/blob/master/makerom/README.md) for full options.
 
 ## CBuilder3DS reference
 
@@ -109,9 +108,11 @@ Workflow pattern from `CBuilder3DS/build.bat`:
 
 When building **this** project, run those steps from the repo root using `tools/bin/` and the main app's ELF — see the CBuilder3DS section under **bannertool setup** above.
 
-## Rebuilding makerom from source
+## Updating makerom
 
-See `makerom/BUILDING.md`. On Windows, build inside the `makerom/` directory and copy the resulting binary to `tools/bin/`.
+`tools/bin/makerom.exe` is included in the repo — no setup needed for CIA builds.
+
+To replace it with a newer build, download a release from [3DSGuy/Project_CTR](https://github.com/3DSGuy/Project_CTR/releases) (look for `makerom-v*` tags) and copy `makerom.exe` to `tools/bin/`.
 
 ## Notes
 
