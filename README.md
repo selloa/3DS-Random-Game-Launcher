@@ -1,12 +1,18 @@
+<p align="center">
+  <img src="meta/banner.png" alt="3DS Random Game Launcher banner" width="512">
+</p>
+
 # 3DS Random Game Launcher
 
 Can't decide what to play? Let your 3DS pick a random installed title and launch it.
 
+![3DS Random Game Launcher screenshot](meta/screenshot.png)
+
 ## Download
 
-**Recommended: [Universal Updater](https://github.com/Universal-Team/Universal-Updater)** (Universal-DB)
+**[View on Universal-DB](https://db.universal-team.net/3ds/3ds-random-game-launcher)** — install with **[Universal Updater](https://github.com/Universal-Team/Universal-Updater)** on your 3DS.
 
-The app is on [Universal-DB](https://db.universal-team.net/3ds/3ds-random-game-launcher). After a new [GitHub Release](https://github.com/selloa/3DS-Random-Game-Launcher/releases) is published, Universal Updater picks it up automatically (usually within a few hours).
+After a new [GitHub Release](https://github.com/selloa/3DS-Random-Game-Launcher/releases) is published, Universal Updater picks it up automatically (usually within a few hours).
 
 1. Open **Universal Updater** on your 3DS
 2. Search for **"3DS Random Game Launcher"**
@@ -41,6 +47,11 @@ While viewing a pick, use **L/R** to page through game, detail, and technical in
 | **START** | Exit |
 
 In the options menu: **Up/Down** to move, **A** to toggle or restore defaults, **B** or **SELECT** to close (saves settings).
+
+## Community
+
+- [r/3dshacks discussion](https://www.reddit.com/r/3dshacks/comments/1nazswi/comment/onf3mls/)
+- [GBATemp release thread](https://gbatemp.net/threads/3ds-random-game-launcher-finally-something-to-solve-the-what-should-i-play-problem.675053/)
 
 ## Feedback & contributions
 
