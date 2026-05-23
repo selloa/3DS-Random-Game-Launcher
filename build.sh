@@ -15,7 +15,7 @@ case "$1" in
             echo "- Additional title information"
             echo "- No optimization for easier debugging"
             echo ""
-            echo "Output files are in the dist/ directory with incremental naming."
+            echo "Output files are in the dist/ directory (semver from VERSION file)."
         else
             echo ""
             echo "DEBUG build failed!"
@@ -30,7 +30,7 @@ case "$1" in
             echo "RELEASE build completed successfully!"
             echo "Optimized for performance and smaller size."
             echo ""
-            echo "Output files are in the dist/ directory with incremental naming."
+            echo "Output files are in the dist/ directory (semver from VERSION file)."
         else
             echo ""
             echo "RELEASE build failed!"
@@ -62,6 +62,6 @@ case "$1" in
         echo ""
         echo "If no parameter is provided, this help is shown."
         echo ""
-        echo "Builds are automatically numbered and saved to dist/ directory."
+        echo "Builds use the version in VERSION and are saved to dist/ directory."
         ;;
 esac

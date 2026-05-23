@@ -11,14 +11,14 @@
       "author": "selloa",
       "category": "Utilities",
       "description": "Can't decide what to play? Let your 3DS pick for you. Scans your SD card, filters out system junk, and launches a random game.",
-      "version": "1.0.0",
+      "version": "0.1.9",
       "console": "3ds",
       "iconUrl": "https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/icon.png",
       "bannerUrl": "https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/meta/banner.png",
       "screenshots": [
         "https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/meta/screenshot.png"
       ],
-      "releaseNotes": "Initial release",
+      "releaseNotes": "Semver 0.1.9 (successor to unreleased v19). See GitHub Releases for changelog.",
       "downloadUrl": "https://github.com/selloa/3DS-Random-Game-Launcher/releases/latest/download/3DS-Random-Game-Launcher.3dsx",
       "extracted": false,
       "zip": false,

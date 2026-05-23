@@ -59,7 +59,7 @@ cd 3DS-Random-Game-Launcher
 make
 ```
 
-The build system automatically creates incremental versions in the `dist/` directory with numbered filenames (e.g., `3DS-Random-Game-Launcher-v1.3dsx`).
+The build system reads the semver from [`VERSION`](VERSION) and writes artifacts to `dist/` (e.g. `3DS-Random-Game-Launcher-v0.1.9.3dsx`). See [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ### Build Scripts
 
@@ -94,21 +94,24 @@ Installable `.cia` packaging is supported via the tooling in `tools/`. See [tool
 ### Documentation
 
 - [docs/README.md](docs/README.md) — full doc index
+- [docs/VERSIONING.md](docs/VERSIONING.md) — semver, releases, legacy v18→0.1.8 mapping
 - [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — title lookup roadmap
 - [docs/MAIN_C_FUNCTIONALITY.md](docs/MAIN_C_FUNCTIONALITY.md) — how `main.c` works
 - [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) — testing checklist
 
 ## Game Database Sources
 
-The title database (`source/title_database.c`) contains **4,135+ 3DS game entries** with title IDs and names. Data was sourced from the comprehensive [3dsdb community database](https://3dsdb.com/) via multiple methods:
+The title database (`source/title_database.c`) maps 3DS title IDs to display names for Layer 1 offline lookup. The shipped database is being rebuilt to include **all title types** Nlib tracks (base games, Virtual Console, DSiWare, updates, DLC, themes, etc.); the random picker can filter subsets in app code later.
 
-- **3dsdb API**: `https://api.ghseshop.cc` (base games, virtual console, DSiWare)
-- **3dsdb GitHub**: `https://raw.githubusercontent.com/hax0kartik/3dsdb/master/jsons` (regional data)
-- **3dsdb XML**: `https://3dsdb.com/xml.php` (complete database export)
+**Planned rebuild priority** (see [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md)):
 
-The database includes games from all regions (USA, EUR, JPN) with both English and original Japanese/Chinese titles. Scripts in the `scripts/` directory can be used to update the database with the latest entries.
+1. [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb/tree/master/jsons) — regional eShop JSONs (primary names)
+2. [Nlib API](https://github.com/ghost-land/nlib-api) — `api.nlib.cc/ctr` (full catalog, all categories)
+3. [3dsdb.com](https://3dsdb.com/xml.php) — XML gap fill
 
-**Note for developers**: The `title_database.c` file might be interesting for other 3DS homebrew projects that need a complete list of all title names with their corresponding title IDs.
+The legacy `api.ghseshop.cc` endpoint is retired; Nlib is its successor. Regenerate with `scripts/build_title_database.py` (planned) or interim scripts in `scripts/README.md`.
+
+**Note for developers**: `title_database.c` may be useful to other 3DS homebrew that needs a broad ID→name table.
 
 ## The story
 

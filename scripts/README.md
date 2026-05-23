@@ -2,9 +2,31 @@
 
 Python utilities for maintaining `source/title_database.c`.
 
-## Recommended workflow
+See [docs/TITLE_RESOLUTION_ROADMAP.md](../docs/TITLE_RESOLUTION_ROADMAP.md) for the full title-resolution plan, source priority, and merge rules.
 
-Use **`fetch_3dsdb_complete.py`** — it pulls all regions from [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb) (`list_US.json`, `list_GB.json`, `list_JP.json`, etc.) and regenerates `source/title_database.c`.
+## Target workflow (planned)
+
+**`build_title_database.py`** (not yet implemented) will regenerate the offline catalog in one step:
+
+1. **hax0kartik/3dsdb** — regional eShop JSONs (US → GB → JP → KR → TW); primary names
+2. **Nlib API** (`api.nlib.cc/ctr`) — all categories; add missing title IDs
+3. **3dsdb.com/xml.php** — last-resort gap fill
+
+The catalog includes **everything Nlib tracks** (base, Virtual Console, DSiWare, updates, DLC, themes, videos, extras). What the random picker actually launches is filtered in app code, not at build time.
+
+```bash
+# Preview (planned)
+python scripts/build_title_database.py --dry-run
+
+# Replace title_database.c with timestamped backup (planned)
+python scripts/build_title_database.py
+```
+
+Until `build_title_database.py` exists, use the interim scripts below.
+
+## Interim workflow
+
+**`fetch_3dsdb_complete.py`** — hax0kartik JSON only (~4,200 base eShop titles). Does not include Nlib categories yet.
 
 ```bash
 # Preview fetch (writes source/title_database_generated.c, does not overwrite)
@@ -20,13 +42,24 @@ Then rebuild with `make` or `build.bat release`.
 
 | Script | Status | Description |
 |--------|--------|-------------|
-| `fetch_3dsdb_complete.py` | **Primary** | Full regional fetch from 3dsdb GitHub JSONs |
-| `fetch_3dsdb_api.py` | Legacy | Fetches from [Nlib API](https://github.com/ghost-land/nlib-api) (`api.nlib.cc/ctr`) |
-| `fetch_3dsdb_batch.py` | Legacy | Batch variant of the Nlib API fetch |
-| `expand_database.py` | Legacy | Fetches from 3dsdb.com XML export |
-| `fix_display_issues.py` | Utility | Cleans TM, HTML tags, and display characters in an existing `.c` file (also applied automatically during fetch) |
+| `build_title_database.py` | **Planned** | Unified merge: hax0kartik → Nlib (all categories) → XML |
+| `fetch_3dsdb_complete.py` | Interim | hax0kartik regional JSONs only |
+| `fetch_3dsdb_api.py` | Legacy | Nlib-only fetch (`api.nlib.cc/ctr`); reference for merge script |
+| `fetch_3dsdb_batch.py` | Legacy | Batch variant of the Nlib fetch |
+| `expand_database.py` | Legacy | 3dsdb.com XML export only |
+| `fix_display_issues.py` | Utility | Cleans TM, HTML tags, and display characters in an existing `.c` file |
 
-The legacy fetch scripts predate `fetch_3dsdb_complete.py` and hit the Nlib `/ctr` endpoints (successor to the archived `api.ghseshop.cc` 3DSDB API). They are slow (~3k+ per-title requests) — use `fetch_3dsdb_complete.py` unless you specifically need Nlib’s category breakdown or media metadata.
+### Source priority (summary)
+
+| Priority | Source | Adds |
+|----------|--------|------|
+| 1 | hax0kartik/3dsdb JSON | eShop names (best quality) |
+| 2 | Nlib `/ctr/category/*` | All missing IDs — base, VC, DSiWare, updates, DLC, etc. |
+| 3 | 3dsdb.com XML | Remaining gaps only |
+
+**Merge rule:** first source to provide a title ID wins for the **name**; later sources only add **new** IDs.
+
+**Retired:** `api.ghseshop.cc` ([3DSDBAPI](https://github.com/ghost-land/3DSDBAPI), archived) — use Nlib instead.
 
 ## Requirements
 
@@ -36,6 +69,5 @@ The legacy fetch scripts predate `fetch_3dsdb_complete.py` and hit the Nlib `/ct
 ## After updating the database
 
 1. Review generated code for duplicates or bad entries
-2. Copy merged entries into `source/title_database.c`
-3. Run `make` or `build.bat release` to verify the build
-4. Test on hardware with titles that were previously missing or misnamed
+2. Run `make` or `build.bat release` to verify the build
+3. Test on hardware with titles that were previously missing or misnamed (updates, VC, DSiWare)

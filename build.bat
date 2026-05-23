@@ -13,7 +13,7 @@ if "%1"=="debug" (
         echo - Additional title information
         echo - No optimization for easier debugging
         echo.
-        echo Output files are in the dist/ directory with incremental naming.
+        echo Output files are in the dist/ directory (semver from VERSION file).
     ) else (
         echo.
         echo DEBUG build failed!
@@ -27,7 +27,7 @@ if "%1"=="debug" (
         echo RELEASE build completed successfully!
         echo Optimized for performance and smaller size.
         echo.
-        echo Output files are in the dist/ directory with incremental naming.
+        echo Output files are in the dist/ directory (semver from VERSION file).
     ) else (
         echo.
         echo RELEASE build failed!
@@ -59,5 +59,5 @@ if "%1"=="debug" (
     echo.
     echo If no parameter is provided, this help is shown.
     echo.
-    echo Builds are automatically numbered and saved to dist/ directory.
+    echo Builds use the version in VERSION and are saved to dist/ directory.
 )

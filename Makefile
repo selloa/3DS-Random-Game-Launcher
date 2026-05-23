@@ -43,11 +43,11 @@ APP_DESCRIPTION	:= Launch a random game from your library
 APP_AUTHOR	:= selloa (2025)
 
 # Incremental build support
-BUILD_NUMBER := $(shell if [ -f .build_number ]; then cat .build_number; else echo 1; fi)
+VERSION := $(strip $(shell cat VERSION 2>/dev/null || echo 0.0.0))
+VERSION_TAG := v$(VERSION)
 OUTPUT_DIR := dist
 DEBUG_SUFFIX := $(if $(DEBUG),-debug,)
-BETA_SUFFIX := -beta
-TARGET_NAME := $(TARGET)$(DEBUG_SUFFIX)-v$(BUILD_NUMBER)$(BETA_SUFFIX)
+TARGET_NAME := $(TARGET)-$(VERSION_TAG)$(DEBUG_SUFFIX)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
@@ -172,10 +172,11 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: all clean increment-build copy-to-dist
+.PHONY: all clean copy-to-dist
 
 #---------------------------------------------------------------------------------
-all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) increment-build
+all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+	@echo "Building $(VERSION_TAG)..."
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@$(MAKE) copy-to-dist
 
@@ -191,13 +192,6 @@ ifneq ($(DEPSDIR),$(BUILD))
 $(DEPSDIR):
 	@mkdir -p $@
 endif
-
-#---------------------------------------------------------------------------------
-increment-build:
-	@mkdir -p $(OUTPUT_DIR)
-	@if [ ! -f .build_number ]; then echo 1 > .build_number; fi
-	@echo $$(($$(cat .build_number) + 1)) > .build_number
-	@echo "Build number: $$(cat .build_number)"
 
 #---------------------------------------------------------------------------------
 copy-to-dist:

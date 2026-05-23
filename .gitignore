@@ -6,7 +6,7 @@ dist/
 *.map
 *.lst
 
-# Build number tracking
+# Legacy auto-increment counter (replaced by VERSION + semver)
 .build_number
 
 # Generated homebrew outputs

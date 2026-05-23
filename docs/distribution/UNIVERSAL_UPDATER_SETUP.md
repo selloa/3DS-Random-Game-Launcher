@@ -51,7 +51,7 @@ Edit `unistore.json` and update:
 - `iconUrl`: URL to your icon (if hosted)
 - `bannerUrl`: URL to your banner (if hosted)
 - `screenshots`: Array of screenshot URLs (if hosted)
-- `version`: Update version number when releasing new versions
+- `version`: Must match [`VERSION`](../VERSION) in the repo root (see [VERSIONING.md](../VERSIONING.md))
 
 **Important URLs:**
 - For GitHub Releases: `https://github.com/USERNAME/REPO/releases/latest/download/FILENAME.3dsx`
@@ -83,9 +83,10 @@ https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/unistore.
 ## Example Workflow
 
 1. **Release a new version:**
-   - Build your `.3dsx` file
-   - Create a GitHub Release and upload the `.3dsx` file
-   - Update `unistore.json` with the new version number and download URL
+   - Bump [`VERSION`](../VERSION) per [VERSIONING.md](../VERSIONING.md)
+   - Build your `.3dsx` file (`make` → `dist/3DS-Random-Game-Launcher-vX.Y.Z.3dsx`)
+   - Create a GitHub Release (tag `vX.Y.Z`) and upload the `.3dsx` file
+   - Update `unistore.json` with the new version string and download URL
    - Commit and push `unistore.json` to your repository
 
 2. **Users install:**
@@ -99,7 +100,7 @@ https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/unistore.
 - **Keep URLs updated**: When you release new versions, update the `downloadUrl` in `unistore.json`
 - **Use GitHub Releases**: GitHub Releases provide stable download URLs that don't change
 - **HTTPS required**: Universal Updater requires HTTPS URLs for security
-- **Version numbers**: Update the version in `unistore.json` so users know when updates are available
+- **Version numbers**: Keep `unistore.json` in sync with [`VERSION`](../VERSION)
 - **Test first**: Always test the QR code yourself before sharing it publicly
 
 ## Alternative: Direct File QR Code (FBI)
