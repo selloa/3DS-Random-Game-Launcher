@@ -1,7 +1,9 @@
 # 3DS Random Game Launcher - Debug and Error Handling Improvements
 
+> **Note (May 2026):** Parts of this document describe planned or partial improvements. The **current shipping `main.c`** has basic error handling (no games, selection retry limit) and **X toggles homebrew mode** — not system information. See [MAIN_C_FUNCTIONALITY.md](MAIN_C_FUNCTIONALITY.md) and [TESTING_GUIDE.md](TESTING_GUIDE.md) for what is implemented today.
+
 ## Overview
-This document outlines the comprehensive debug and error handling improvements made to the 3DS Random Game Launcher to help testers identify and report issues accurately.
+This document outlines debug and error handling improvements for the 3DS Random Game Launcher — both shipped and planned — to help testers identify and report issues accurately.
 
 ## Key Improvements
 
@@ -13,7 +15,7 @@ This document outlines the comprehensive debug and error handling improvements m
   - System language
   - Memory usage information
 
-- **Access Method**: Press **X** during game selection to view system information
+- **Access Method** *(planned)*: System info display is not in the current build; **X** toggles homebrew mode instead
 
 ### 2. Comprehensive Error Handling
 Added detailed error handling for all major failure points:
@@ -44,7 +46,7 @@ Added detailed error handling for all major failure points:
 - **Performance Monitoring**: Memory usage tracking
 
 ### 4. Enhanced User Interface
-- **System Info Access**: Press X to view system information
+- **System Info Access** *(planned)*: Not implemented — **X** toggles homebrew mode in the current build
 - **Better Error Messages**: Clear, actionable error descriptions
 - **Progress Indication**: Debug messages show what the app is doing
 - **Graceful Degradation**: App continues working even if some features fail
@@ -112,7 +114,7 @@ typedef struct {
 ## Testing Features
 
 ### For Testers
-1. **System Information Display**: Press X to see detailed system info
+1. **Homebrew mode**: Press **X** to toggle inclusion of titles not in the offline database
 2. **Error Code Reporting**: All errors now have specific codes
 3. **Debug Build**: Use `make DEBUG=1` for verbose output
 4. **Comprehensive Testing Guide**: Step-by-step testing instructions

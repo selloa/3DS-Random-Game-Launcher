@@ -27,15 +27,15 @@ SD Card Root/
 ## How It Works
 
 The 3DSX file is a standard homebrew executable that:
-- Scans your SD card for installed games
-- Filters out system titles and invalid entries
-- Randomly selects a valid game from your library
-- Launches the selected game using 3DS chainloading
+- Scans your SD card for installed titles
+- Picks one at random (no category filter — any title in the offline database can be selected)
+- Shows the title name from the built-in database, or the hex title ID with homebrew mode
+- Launches the selected title using 3DS chainloading
 
 ## Controls
 - **A** - Launch the selected title
-- **Y** - Reroll for something else  
-- **X** - Show system information (debug features)
+- **Y** - Reroll for something else
+- **X** - Toggle homebrew mode (include titles not in the database)
 - **START** - Exit
 
 ## Requirements

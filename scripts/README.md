@@ -12,7 +12,7 @@ See [docs/TITLE_RESOLUTION_ROADMAP.md](../docs/TITLE_RESOLUTION_ROADMAP.md) for 
 2. **ghost-land/3dsdb** — bulk category JSON from GitHub (`data/initial_data/*.json`); add missing title IDs
 3. **3dsdb.com/xml.php** — last-resort gap fill
 
-The catalog includes **all ghost-land/3dsdb categories** (base, Virtual Console, DSiWare, updates, DLC, videos). What the random picker actually launches is filtered in app code, not at build time.
+The catalog includes **all ghost-land/3dsdb categories** (base, Virtual Console, DSiWare, updates, DLC, videos). The random picker does **not** filter by category today — any installed title in the database can be selected. Filtering rules will be added in `main.c` after hardware testing.
 
 ```bash
 # Preview (writes source/title_database_generated.c)

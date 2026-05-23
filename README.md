@@ -15,17 +15,18 @@ Can't decide what to play? Let your 3DS pick for you.
 | `bannertool/`, `CBuilder3DS/` | CIA packaging submodules (see [tools/README.md](tools/README.md)) |
 | `docs/` | Developer and tester documentation |
 
-**Roadmap:** [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — planned improvements to title name resolution (offline DB + on-device SMDH fallback).
+**Roadmap:** [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md) — offline catalog (rebuilt), hardware testing, picker filtering, on-device SMDH fallback.
 
 **Quick start for development:** edit `source/`, run `make` or `build.bat release`, grab the `.3dsx` from `dist/`.
 
 ## What it does
 
-Scans your SD card, filters out system junk, and launches a random game. Simple as that.
+Scans your SD card and launches a random installed title. Names come from the built-in offline database (8,714 entries). There is **no category filtering** yet — updates, DLC, VC, and base games can all be picked if installed and listed in the database. Filtering options will follow hardware testing.
 
 **Controls:**
 - `A` - Launch the selected title
 - `Y` - Reroll for something else
+- `X` - Toggle homebrew mode (include titles not in the database)
 - `START` - Exit
 
 ## Download (For Users)
@@ -101,7 +102,7 @@ Installable `.cia` packaging is supported via the tooling in `tools/`. See [tool
 
 ## Game Database Sources
 
-The title database (`source/title_database.c`) maps 3DS title IDs to display names for Layer 1 offline lookup. Regenerate with `scripts/build_title_database.py` to include base games, Virtual Console, DSiWare, updates, DLC, and videos; the random picker can filter subsets in app code later.
+The title database (`source/title_database.c`) maps 3DS title IDs to display names for Layer 1 offline lookup. The shipped database has **8,714 entries** (base games, Virtual Console, DSiWare, updates, DLC, videos). Regenerate with `scripts/build_title_database.py`. Picker-side category filtering is **not implemented yet** — planned after hardware testing.
 
 **Rebuild priority** (see [docs/TITLE_RESOLUTION_ROADMAP.md](docs/TITLE_RESOLUTION_ROADMAP.md)):
 
@@ -117,18 +118,19 @@ The legacy `api.ghseshop.cc` endpoint is retired. Do not use the Nlib API for of
 
 Started as a basic proof-of-concept by [einso](https://github.com/einso) - solid foundation but needed some love. Most of the heavy lifting here was done by AI (Claude/GPT) because let's be real, parsing 3DS title databases and handling all the edge cases is tedious as hell.
 
-The original was functional but rough around the edges. This version adds proper error handling, better title filtering, and some polish. Still plenty of room for improvement though.
+The original was functional but rough around the edges. This version adds proper error handling, a rebuilt offline catalog, and some polish. Category filtering and richer homebrew support are next, after hardware testing.
 
 ## What's next
 
-This thing has potential. Some ideas for whoever wants to take it further:
+Near term: **hardware testing** with the rebuilt 8,714-entry database, then a **filtering suite** in the app (categories, user preferences) based on real-world results. Homebrew mode will be expanded later (SMDH names, clearer UX).
+
+Longer term ideas:
 
 - **GUI overhaul** - The text interface works but a proper UI would be sick
 - **Better packaging** - Improved distribution and installation
 - **Game carousel** - Show actual titles with covers in a carousel instead of just text
 - **Icons** - Display game artwork
 - **Favorites/blacklist** - Let users customize what gets picked
-- **Categories** - Filter by genre
 - **Stats** - Track what you actually play
 - **Config file** - Save preferences
 

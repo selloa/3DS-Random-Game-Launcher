@@ -1,17 +1,18 @@
 # Title Resolution Roadmap
 
-How the app resolves installed title IDs to display names, what's broken today, and the planned fix.
+How the app resolves installed title IDs to display names, what's shipped today, and what's next.
 
 ## Current behavior
 
 1. `AM_GetTitleList` returns title IDs from the SD card — **no names**.
-2. `lookup_game_name()` searches a static array in `source/title_database.c`.
-3. If no match and homebrew mode is off, the app rerolls (silently shrinking the pool).
-4. If no match and homebrew mode is on, the app shows the raw 16-digit hex ID.
+2. The picker draws randomly from **all** installed SD titles — **no content-category filter** is active in `main.c` (legacy `0x00`/`0x02` filter is commented out).
+3. `lookup_game_name()` searches a static array in `source/title_database.c` (**8,714 entries**, rebuilt May 2026).
+4. If no match and homebrew mode is off, the app rerolls (silently shrinking the pool).
+5. If no match and homebrew mode is on, the app shows the raw 16-digit hex ID.
 
-The database was built from community sources (ghseshop API, hax0kartik/3dsdb JSON, 3dsdb.com XML) via separate scripts and manual cleanup. There is no unified merge pipeline today.
+The offline database is regenerated via `scripts/build_title_database.py` (hax0kartik → ghost-land/3dsdb → 3dsdb.com XML). See [scripts/README.md](../scripts/README.md).
 
-**Known gap:** many titles on a real SD card are not in the offline database, so users see hex IDs or miss games entirely.
+**Remaining gap:** titles on a real SD card may still be missing from the catalog, or the picker may surface title types users don't want (updates, DLC, etc.). Hardware testing will drive both SMDH fallback (Layer 2) and picker filtering rules (Phase 1c).
 
 ## Design principle
 
@@ -19,7 +20,8 @@ Use a **hybrid offline system** — no runtime HTTP on the 3DS.
 
 | Layer | Role | Status |
 |-------|------|--------|
-| **1 — Static database** | Fast lookup for known titles | Exists; needs rebuild pipeline |
+| **1 — Static database** | Fast lookup for known titles | **Shipped** — 8,714 entries; merge script in `scripts/` |
+| **1c — Picker filtering** | Limit what gets randomly launched (categories, user prefs) | **Not implemented** — after hardware testing |
 | **2 — On-device SMDH read** | Read the installed title's own metadata when the DB misses | Planned |
 | ~~Runtime API on 3DS~~ | ~~Fetch names over WiFi at pick time~~ | **Out of scope** — fragile, slow, endpoints die |
 
@@ -94,7 +96,7 @@ Do **not** strip update suffixes from names at build time — keep source string
 | Concern | Where it lives |
 |---------|----------------|
 | **Offline catalog** (`title_database.c`) | ghost-land categories + hax0kartik + XML gaps — maximum coverage |
-| **Random picker pool** (`main.c`) | App filters (e.g. base + VC + DSiWare only; exclude updates/DLC/system) — can change without re-fetching |
+| **Random picker pool** (`main.c`) | **No filter today** — any installed title in the DB can be picked. Future app filters (e.g. base + VC + DSiWare only; exclude updates/DLC/system) will be designed after hardware testing |
 
 ---
 
@@ -103,11 +105,7 @@ Do **not** strip update suffixes from names at build time — keep source string
 - [x] Update `scripts/fetch_3dsdb_complete.py` for current JSON format (`list_US.json`, etc.)
 - [x] Add display-character cleaning (TM, HTML tags, smart quotes)
 - [x] Add `--dry-run` preview mode
-- [ ] Superseded by Phase 1b merge script (hax0kartik alone is no longer the target workflow)
-- [ ] Apply full merge to `source/title_database.c` and verify build
-- [ ] Ship updated database in a release
-
-Dry-run (May 2026) found **4,199** unique base titles from hax0kartik alone vs **4,135** in the current database (+64). Full ghost-land/3dsdb merge adds updates, VC, DSiWare, DLC, and videos (~6,000+ unique CTR title IDs expected).
+- [x] Superseded by Phase 1b merge script
 
 ### Phase 1b — Multi-source merge script
 
@@ -131,9 +129,24 @@ Tasks:
 - [x] `--dry-run` writes `source/title_database_generated.c` without overwriting
 - [x] Timestamped backup before overwriting `source/title_database.c`
 - [x] Document source priority and merge rules (this file)
-- [ ] Apply full merge to `source/title_database.c` and verify build
+- [x] Apply full merge to `source/title_database.c` and verify build (**8,714 entries**)
+- [ ] Ship updated database in a release
 - [ ] Add to release checklist: regenerate DB before tagging
 - [x] Update `scripts/README.md`
+
+Merge result (May 2026): **8,714** unique CTR title IDs — up from **4,135** in the previous database. Step 1 alone contributed 4,199 hax0kartik base titles; ghost-land added updates, VC, DSiWare, DLC, and videos.
+
+### Phase 1c — Hardware testing and picker filtering (next)
+
+**Goal:** Validate the rebuilt catalog on real hardware, then implement picker-side rules in `main.c` based on what actually works for users.
+
+**Approach:** keep the **no-filtering** picker for initial hardware tests so we observe the full installed library behavior. Filtering and homebrew UX will be expanded only after test feedback.
+
+- [ ] Hardware test pass with 8,714-entry database (name resolution, reroll behavior, launch success)
+- [ ] Document which title types users want included/excluded (base, VC, DSiWare, updates, DLC, system, homebrew)
+- [ ] Implement content-category and/or user-configurable picker filters in `main.c`
+- [ ] Expand homebrew mode (SMDH names, clearer UI, optional separate pool)
+- [ ] Update user-facing docs once filter defaults are chosen
 
 ### Data sources reference
 
@@ -178,7 +191,7 @@ Reference implementations: JKSM (`loadSMDH`), hbmenu SMDH parsing.
 
 - [ ] Call SMDH lookup only when `lookup_game_name()` returns NULL
 - [ ] Update display logic in `main.c` (remove hex-only fallback for resolvable titles)
-- [ ] Revisit homebrew mode semantics — may become less critical once SMDH covers retail/CIA titles
+- [ ] Revisit homebrew mode — expand after hardware testing and SMDH integration (basic hex-ID fallback exists today)
 
 ### Phase 2c — SD cache (optional performance pass)
 
@@ -219,7 +232,7 @@ flowchart TD
 
 | Path | Role |
 |------|------|
-| `source/main.c` | Title picking, display, and picker-side filtering |
+| `source/main.c` | Title picking and display; **no category filter active** — filtering planned in Phase 1c |
 | `source/title_database.c` | Layer 1 static lookup table |
 | `scripts/build_title_database.py` | Unified merge tool (Layer 1b) |
 | `scripts/title_db_common.py` | Shared cleaners and catalog merge helpers |
@@ -228,14 +241,19 @@ flowchart TD
 | `scripts/fix_display_issues.py` | Post-process cleaning for generated C |
 | `scripts/README.md` | Script usage |
 
-## Testing checklist (when implemented)
+## Testing checklist
+
+### Layer 1 — offline database (in progress)
+
+- [ ] Game in DB → shows DB name on hardware
+- [ ] Update / DLC / VC / DSiWare title in DB → name resolves when picked
+- [ ] Title installed but missing from DB → reroll (or hex ID with homebrew mode)
+- [ ] Large library (100+ titles) — acceptable reroll latency
+- [x] Regenerated DB from merge script builds on PC
+- [x] Merge stats logged: counts per source, duplicates skipped
+
+### Layer 2 — SMDH fallback (when implemented)
 
 - [ ] Retail CIA game missing from DB → shows SMDH name
-- [ ] Game in DB → shows DB name (no SMDH read needed)
-- [ ] Update title ID in DB → name resolves (even if picker excludes it)
-- [ ] VC / DSiWare title in DB → name resolves
 - [ ] Homebrew with custom title ID + empty SMDH → hex fallback
 - [ ] System language vs English fallback
-- [ ] Large library (100+ titles) — acceptable reroll latency
-- [ ] Regenerated DB from merge script builds and runs on hardware
-- [ ] Merge stats logged: counts per source, duplicates skipped

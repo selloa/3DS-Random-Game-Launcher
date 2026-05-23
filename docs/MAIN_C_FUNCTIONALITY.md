@@ -3,6 +3,8 @@
 ## Overview
 The `main.c` file is the core of a Nintendo 3DS homebrew application that randomly selects and launches games from the user's installed game library. It provides an interactive interface for users to discover and play games they might not have tried otherwise.
 
+**Current picker policy (May 2026):** no content-category filtering. Any installed SD title can be picked if it resolves in the offline database, or if homebrew mode is on. Category/user filtering will be designed after hardware testing with the rebuilt catalog.
+
 ## Core Functionality
 
 ### 1. System Initialization
@@ -27,35 +29,53 @@ AM_GetTitleList(&readTitlesAmount, MEDIATYPE_SD, 900, readTitlesID);
 
 The core random selection process works as follows:
 
-#### Title Category Filtering
-The app only considers titles with specific content categories:
-- **Category 0x00**: Regular 3DS applications
-- **Category 0x02**: System applications
-- Other categories are filtered out (DLC, updates, etc.)
+#### Title selection (no category filter)
+
+The app picks randomly from **all** titles returned by `AM_GetTitleList` on the SD card. Legacy code that filtered by content category (`0x00` applications, `0x02` system apps) is **commented out** and not active:
+
+```c
+// TEMPORARILY DISABLED: Category filtering - now accepts all categories
+```
+
+The content-category byte is still read from the title ID but is unused:
+
+```c
+unsigned char contentCategory = ((unsigned char*)(&readTitlesID[randomTitlePicked]))[4];
+```
+
+**Effective gate today:** database lookup (or homebrew mode). Updates, DLC, Virtual Console, DSiWare, and base apps are all eligible if installed and listed in `title_database.c`.
+
+A more comprehensive filtering suite (category rules, user preferences, favorites/blacklist) is planned **after** hardware testing with the rebuilt offline database — see [TITLE_RESOLUTION_ROADMAP.md](TITLE_RESOLUTION_ROADMAP.md).
 
 #### Database Lookup
 For each randomly selected title:
 1. Extracts the title ID from the system
 2. Looks up the game name in the built-in database (`title_database.c`)
-3. The database contains 4,135 entries covering:
-   - Regular 3DS games
-   - Virtual Console games
-   - DSiWare titles
+3. The database contains **8,714 entries** (merged offline catalog), including:
+   - Base 3DS applications
+   - Virtual Console titles
+   - DSiWare
+   - Updates, DLC, and eShop videos
    - Multi-region variants
 
-#### Homebrew Support
-The app includes a toggle for homebrew games:
-- **Homebrew Mode OFF**: Only shows games found in the database
-- **Homebrew Mode ON**: Includes homebrew titles not in the database
-- Homebrew games display their Title ID instead of a friendly name
+If the title is not in the database, the app rerolls (up to 100 attempts) unless homebrew mode is enabled.
+
+#### Homebrew Support (basic — to be expanded)
+
+The app includes a minimal toggle for titles not in the database:
+- **Homebrew Mode OFF** (default): Only picks titles found in the database; unknown titles cause a reroll
+- **Homebrew Mode ON**: Accepts titles not in the database; displays the raw 16-digit hex title ID
+- Homebrew mode does not read SMDH metadata yet — that is planned in Layer 2 of the roadmap
+
+Future work: richer homebrew handling (SMDH names, clearer UI, separate pool options) after hardware validation.
 
 ### 4. User Interface
 
 #### Display Information
 For each selected game, the app shows:
-- **Regular Games**: Game name from database
-- **Homebrew Games**: "Homebrew Game" + Title ID
-- Current homebrew mode status
+- **Titles in database**: Game name from `title_database.c`
+- **Titles not in database** (homebrew mode only): Raw 16-digit hex title ID
+- Current homebrew mode status (ON/OFF)
 
 #### Control Scheme
 - **A Button**: Launch the selected game
@@ -116,8 +136,8 @@ srand((unsigned) time(&t));
 ```c
 unsigned char contentCategory = ((unsigned char*)(&readTitlesID[randomTitlePicked]))[4];
 ```
-- Extracts the 5th byte from the title ID
-- This byte contains the content category information
+- Extracts the 5th byte from the title ID (Nintendo content category)
+- **Not used for filtering today** — reserved for future picker rules
 
 ### Memory Management
 - Uses static arrays for title storage (no dynamic allocation)
@@ -160,11 +180,14 @@ unsigned char contentCategory = ((unsigned char*)(&readTitlesID[randomTitlePicke
 
 ## Database Integration
 
-The app relies heavily on the `title_database.c` file which contains:
-- **4,135 game entries** covering the entire 3DS library
-- **Multi-region support** (Japanese, English, Korean variants)
-- **Efficient lookup function** using linear search
-- **Comprehensive coverage** including Virtual Console and DSiWare
+The app relies on `title_database.c`, regenerated via `scripts/build_title_database.py`:
+
+- **8,714 entries** — hax0kartik names + ghost-land/3dsdb bulk JSON + 3dsdb.com XML gap fill
+- **Multi-region support** (Japanese, English, Korean, etc. variants)
+- **Linear search** via `lookup_game_name()`
+- **Broad coverage** — base apps, Virtual Console, DSiWare, updates, DLC, videos
+
+The catalog is intentionally maximal. What the random picker should *launch* (vs. only *name*) will be decided after hardware testing.
 
 ## Build and Deployment
 

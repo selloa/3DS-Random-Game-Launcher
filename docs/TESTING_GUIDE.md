@@ -1,30 +1,21 @@
 # 3DS Random Game Launcher - Testing Guide
 
 ## Overview
-This guide is designed to help testers identify and report issues with the 3DS Random Game Launcher across different 3DS systems and firmware versions.
 
-## System Information Collection
-The launcher now automatically collects and displays system information for debugging purposes. This information is crucial for identifying compatibility issues.
+This guide helps testers validate the launcher on real 3DS hardware — especially with the **rebuilt 8,714-entry offline database**. Report issues across different models, firmware versions, and library compositions.
 
-### How to Access System Information
-1. Launch the 3DS Random Game Launcher
-2. When a game is selected, press **X** to view system information
-3. Note down all the displayed information for bug reports
+**Current picker behavior:** no content-category filtering. Any installed SD title listed in the database can be randomly selected (including updates, DLC, Virtual Console, DSiWare). Category and user filtering will be added after this testing pass — do not treat unexpected title types as bugs unless launch or naming fails.
 
-### System Information Displayed
-- **Model**: 2DS, 3DS, 3DS XL, New 3DS, New 3DS XL, New 2DS XL
-- **Firmware**: Version number (e.g., 11.17.0-50)
-- **Region**: Japan, USA, Europe, Australia, China, Korea
-- **Language**: System language setting
-- **Memory**: Available and used memory information
+## Controls (current build)
 
-## Error Reporting
-The launcher now provides detailed error messages to help identify issues. When an error occurs:
+| Button | Action |
+|--------|--------|
+| **A** | Launch the selected title |
+| **Y** | Reroll — pick another random title |
+| **X** | Toggle **homebrew mode** (include titles not in the database; shows hex title ID) |
+| **START** | Exit |
 
-1. **Note the Error Code**: A numeric error code will be displayed
-2. **Note the Result Code**: A hexadecimal result code (e.g., 0xD8E0806A)
-3. **Read the Error Description**: Detailed explanation of what went wrong
-4. **Follow Suggested Actions**: The error message may include troubleshooting steps
+Homebrew mode is basic today (hex ID fallback only). Richer homebrew handling is planned later.
 
 ## Common Error Scenarios to Test
 
@@ -41,10 +32,12 @@ The launcher now provides detailed error messages to help identify issues. When 
 - **Expected**: Appropriate error messages for each scenario
 - **Report**: If error messages are incorrect or missing
 
-### 3. Database Issues
-- **Test**: Run the launcher with games that may not be in the database
-- **Expected**: App should handle unknown games gracefully
-- **Report**: If the app crashes or gets stuck in an infinite loop
+### 3. Database and name resolution
+
+- **Test**: Libraries with base games, Virtual Console, DSiWare, updates, and DLC installed
+- **Expected**: Titles in the offline database show a readable name; unknown titles reroll (or show hex ID with homebrew mode ON)
+- **Note**: Being picked for an update or DLC title is **expected** today — note whether launch works and whether users would want that filtered out
+- **Report**: Wrong names, missing names for titles that should be in the DB, infinite reroll loops, crashes
 
 ### 4. Launch Failures
 - **Test**: Try to launch games that may be corrupted or incompatible
@@ -60,10 +53,19 @@ The launcher now provides detailed error messages to help identify issues. When 
 
 ### Basic Functionality
 - [ ] App launches successfully
-- [ ] System information is displayed correctly
-- [ ] Game selection works properly
-- [ ] Game launch works for valid games
-- [ ] App exits cleanly with START button
+- [ ] Game selection works (reroll with Y)
+- [ ] Names display for titles in the offline database
+- [ ] Homebrew mode toggle (X) includes unknown titles
+- [ ] Game launch works for valid titles (A)
+- [ ] App exits cleanly with START
+
+### Title types (no filter yet — document behavior)
+- [ ] Base 3DS application picked and launches
+- [ ] Virtual Console title picked and launches
+- [ ] DSiWare title picked and launches
+- [ ] Update title (`0004000E…`) — note if name shows and whether launch is desirable
+- [ ] DLC title — note if name shows and whether launch is desirable
+- [ ] Title missing from DB — reroll or hex ID with homebrew mode
 
 ### Error Handling
 - [ ] No games scenario handled properly
@@ -73,22 +75,20 @@ The launcher now provides detailed error messages to help identify issues. When 
 - [ ] Invalid input handled properly
 
 ### User Interface
-- [ ] All text is readable
-- [ ] Button prompts are clear
-- [ ] Error messages are helpful
-- [ ] System information is accurate
+- [ ] All text is readable on top screen
+- [ ] Button prompts match actual controls (A/Y/X/START)
+- [ ] Homebrew mode status updates when toggling X
+- [ ] Error messages are helpful when selection fails
 
 ## Debug Build Testing
-For more detailed debugging, you can build a debug version:
+
+For verbose build output on PC, use:
 
 ```bash
 make DEBUG=1
 ```
 
-This will:
-- Enable additional debug output
-- Show all found titles in the console
-- Provide more verbose error information
+Debug builds add a `-debug` suffix to output filenames. On-device behavior is the same as release unless additional debug logging is added to `main.c`.
 
 ## Reporting Bugs
 
@@ -99,11 +99,14 @@ When reporting bugs, please include:
 2. **Firmware Version**: (e.g., 11.17.0-50)
 3. **Region**: (e.g., USA)
 4. **Language**: (e.g., English)
-5. **Error Code**: (if applicable)
-6. **Result Code**: (if applicable, in hexadecimal)
-7. **Steps to Reproduce**: Detailed steps to trigger the issue
-8. **Expected Behavior**: What should have happened
-9. **Actual Behavior**: What actually happened
+5. **App version**: from `VERSION` / build filename (e.g., v0.1.9)
+6. **Title ID**: 16-digit hex if relevant (especially for wrong/missing names)
+7. **Homebrew mode**: ON or OFF
+8. **Steps to Reproduce**: Detailed steps to trigger the issue
+9. **Expected Behavior**: What should have happened
+10. **Actual Behavior**: What actually happened
+
+For filtering feedback, also note: **Would you want this title type picked?** (base / VC / DSiWare / update / DLC / homebrew)
 
 ### Optional Information
 - **Memory Information**: Available/used memory when error occurred
@@ -159,11 +162,12 @@ Test on different 3DS models if available:
 - New 2DS XL
 
 ### Game Libraries
-Test with different game library configurations:
-- Small library (1-5 games)
+Test with different library configurations:
+- Small library (1–5 games)
 - Large library (50+ games)
-- Mix of different game types (3DS, Virtual Console, DSiWare)
+- Mix of title types: base 3DS, Virtual Console, DSiWare, updates, DLC
 - Games from different regions
+- Homebrew titles (with homebrew mode ON and OFF)
 
 ## Performance Testing
 
