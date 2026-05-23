@@ -52,11 +52,15 @@ case "$1" in
             echo "No dist/ directory found."
         fi
         ;;
+    "banners")
+        bash meta/banner-src/build.sh
+        ;;
     *)
-        echo "Usage: ./build.sh [debug|release|clean|list]"
+        echo "Usage: ./build.sh [debug|release|banners|clean|list]"
         echo ""
         echo "debug   - Build with debug features enabled"
         echo "release - Build optimized release version"
+        echo "banners - Regenerate meta/banner*.png from meta/banner-src/ (needs: pip install pillow)"
         echo "clean   - Clean build files and dist directory"
         echo "list    - List available builds in dist/ directory"
         echo ""

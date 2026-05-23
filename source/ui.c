@@ -7,21 +7,65 @@
 #define APP_VERSION "0.0.0"
 #endif
 
-static const char *page_title(u32 page)
+#define UI_CONSOLE_ROWS 30
+#define UI_CONSOLE_COLS 50
+#define UI_INVERTED_BAR "\x1b[47m\x1b[30m"
+#define UI_BAR_MAIN "\x1b[30m"
+#define UI_BAR_DIM "\x1b[90m"
+#define UI_CONTROLS_ROW_FILTER_STATUS 25
+#define UI_CONTROLS_ROW_FILTER_ACTIONS 26
+#define UI_CONTROLS_ROW_FOOTER_GAP 27
+#define UI_CONTENT_ROW_TITLE 7
+#define UI_CONTENT_ROW_PUBLISHER 8
+#define UI_CONTENT_ROW_GAP 9
+#define UI_CONTENT_ROW_ACTIONS 10
+#define UI_FIELD_LABEL_COLS 14
+#define UI_TECH_LABEL_COLS 18
+#define UI_FILTER_LABEL_COLS 16
+#define UI_FILTER_STATE_COLS 3
+
+static void print_page_tab(u32 page, u32 active_page)
 {
-	switch (page) {
-	case 0:
-		return "Game";
-	case 1:
-		return "Details";
-	default:
-		return "Technical";
+	if (page == active_page) {
+		switch (page) {
+		case 0:
+			printf("\x1b[37mGAME\x1b[0m");
+			break;
+		case 1:
+			printf("\x1b[37mDETAILS\x1b[0m");
+			break;
+		default:
+			printf("\x1b[37mTECHNICAL\x1b[0m");
+			break;
+		}
+	} else {
+		printf("\x1b[90m");
+		switch (page) {
+		case 0:
+			printf("game");
+			break;
+		case 1:
+			printf("details");
+			break;
+		default:
+			printf("technical");
+			break;
+		}
+		printf("\x1b[0m");
 	}
 }
 
-static const char *toggle_text(bool enabled)
+static void print_page_tabs(u32 active_page)
 {
-	return enabled ? "ON" : "OFF";
+	u32 page;
+
+	printf("\x1b[90m< \x1b[0m");
+	for (page = 0; page < UI_PAGE_COUNT; page++) {
+		if (page > 0)
+			printf("\x1b[90m | \x1b[0m");
+		print_page_tab(page, active_page);
+	}
+	printf("\x1b[90m >\x1b[0m\n\n");
 }
 
 static const char *media_inclusion_status(bool included)
@@ -29,13 +73,167 @@ static const char *media_inclusion_status(bool included)
 	return included ? "on" : "off";
 }
 
-static void print_label_value(const char *label, const char *value)
+static void print_section_header(const char *title, bool first)
 {
-	printf("\x1b[90m%s:\x1b[0m ", label);
-	if (value != NULL && value[0] != '\0')
-		printf("\x1b[1;37m%s\x1b[0m\n", value);
-	else
+	if (!first)
+		printf("\n");
+	printf("\x1b[90m%s\x1b[0m\n", title);
+}
+
+static void print_field_inline_cols(u32 labelCols, const char *label, const char *value, bool dim_value)
+{
+	printf("\x1b[90m%-*s\x1b[0m", (int)labelCols, label);
+	if (value == NULL || value[0] == '\0')
 		printf("\x1b[90m(unavailable)\x1b[0m\n");
+	else if (dim_value)
+		printf("\x1b[90m%s\x1b[0m\n", value);
+	else
+		printf("\x1b[37m%s\x1b[0m\n", value);
+}
+
+static void print_field_inline_ex(const char *label, const char *value, bool dim_value)
+{
+	print_field_inline_cols(UI_FIELD_LABEL_COLS, label, value, dim_value);
+}
+
+static void print_field_inline(const char *label, const char *value)
+{
+	print_field_inline_ex(label, value, false);
+}
+
+static void print_tech_field_inline(const char *label, const char *value)
+{
+	print_field_inline_cols(UI_TECH_LABEL_COLS, label, value, false);
+}
+
+static void print_tech_field_inline_dim(const char *label, const char *value)
+{
+	print_field_inline_cols(UI_TECH_LABEL_COLS, label, value, true);
+}
+
+static void print_toggle_state(bool enabled)
+{
+	if (enabled)
+		printf("\x1b[37m%-*s\x1b[0m", UI_FILTER_STATE_COLS, "ON");
+	else
+		printf("\x1b[90m%-*s\x1b[0m", UI_FILTER_STATE_COLS, "OFF");
+}
+
+static void print_filter_row2(const char *label1, bool state1, const char *label2, bool state2)
+{
+	printf("\x1b[90m%-*s\x1b[0m", UI_FILTER_LABEL_COLS, label1);
+	print_toggle_state(state1);
+	if (label2 != NULL && label2[0] != '\0') {
+		printf("  \x1b[90m%-*s\x1b[0m", UI_FILTER_LABEL_COLS, label2);
+		print_toggle_state(state2);
+	}
+	printf("\n");
+}
+
+static u32 wrap_segment_length(const char *text, u32 maxCols, const char **outNext)
+{
+	const char *lastBreak = NULL;
+	u32 len = 0;
+	u32 segmentLen;
+
+	if (text == NULL || text[0] == '\0') {
+		*outNext = text;
+		return 0;
+	}
+
+	while (text[len] != '\0' && len < maxCols) {
+		if (text[len] == ' ' || text[len] == ';' || text[len] == '\n' || text[len] == '\r')
+			lastBreak = text + len;
+		len++;
+	}
+
+	if (text[len] == '\0') {
+		*outNext = text + len;
+		return len;
+	}
+
+	if (lastBreak != NULL) {
+		if (*lastBreak == ';')
+			segmentLen = (u32)(lastBreak - text) + 1;
+		else
+			segmentLen = (u32)(lastBreak - text);
+		*outNext = text + segmentLen;
+		while (**outNext == ' ' || **outNext == '\n' || **outNext == '\r')
+			(*outNext)++;
+		return segmentLen;
+	}
+
+	segmentLen = maxCols;
+	while (segmentLen > 0 && ((const unsigned char)text[segmentLen] & 0xC0) == 0x80)
+		segmentLen--;
+	if (segmentLen == 0)
+		segmentLen = maxCols;
+
+	*outNext = text + segmentLen;
+	return segmentLen;
+}
+
+static void collapse_title_newlines(const char *display_name, char *out, size_t outSize)
+{
+	size_t i = 0;
+	size_t j = 0;
+
+	if (out == NULL || outSize == 0)
+		return;
+
+	out[0] = '\0';
+	if (display_name == NULL)
+		return;
+
+	while (display_name[i] != '\0' && j + 1 < outSize) {
+		if (display_name[i] == '\n' || display_name[i] == '\r')
+			out[j++] = ' ';
+		else
+			out[j++] = display_name[i];
+		i++;
+	}
+	out[j] = '\0';
+}
+
+static void print_value_column_indent(u32 cols)
+{
+	u32 i;
+
+	for (i = 0; i < cols; i++)
+		putchar(' ');
+}
+
+static void print_field_inline_wrap(const char *label, const char *value)
+{
+	char flattened[TITLE_SMDH_LONG_NAME_UTF8_MAX];
+	const char *cursor;
+	u32 valueCols;
+	bool first = true;
+
+	if (value == NULL || value[0] == '\0') {
+		printf("\x1b[90m%-*s\x1b[0m", (int)UI_FIELD_LABEL_COLS, label);
+		printf("\x1b[90m(unavailable)\x1b[0m\n");
+		return;
+	}
+
+	collapse_title_newlines(value, flattened, sizeof(flattened));
+	valueCols = UI_CONSOLE_COLS - UI_FIELD_LABEL_COLS;
+	cursor = flattened;
+	while (cursor[0] != '\0') {
+		u32 take;
+		const char *next;
+
+		take = wrap_segment_length(cursor, valueCols, &next);
+		if (first) {
+			printf("\x1b[90m%-*s\x1b[0m", (int)UI_FIELD_LABEL_COLS, label);
+			printf("\x1b[37m%.*s\x1b[0m\n", (int)take, cursor);
+			first = false;
+		} else {
+			print_value_column_indent(UI_FIELD_LABEL_COLS);
+			printf("\x1b[37m%.*s\x1b[0m\n", (int)take, cursor);
+		}
+		cursor = next;
+	}
 }
 
 static const char *name_source_label(title_name_source_t source)
@@ -52,77 +250,50 @@ static const char *name_source_label(title_name_source_t source)
 
 static void print_smdh_status(const title_smdh_info_t *smdh)
 {
+	char status[48];
+
 	if (smdh->result == TITLE_SMDH_OK)
 		return;
 
-	printf("\x1b[90mSMDH read:\x1b[0m \x1b[90m");
 	switch (smdh->result) {
 	case TITLE_SMDH_ERR_EMPTY:
-		printf("empty");
+		snprintf(status, sizeof(status), "empty");
 		break;
 	case TITLE_SMDH_ERR_FORMAT:
-		printf("bad format");
+		snprintf(status, sizeof(status), "bad format");
 		break;
 	default:
-		printf("unavailable");
 		if (R_FAILED(title_smdh_get_last_result()))
-			printf(" %08lX", (unsigned long)title_smdh_get_last_result());
+			snprintf(status, sizeof(status), "unavailable %08lX",
+				(unsigned long)title_smdh_get_last_result());
+		else
+			snprintf(status, sizeof(status), "unavailable");
 		break;
 	}
-	printf("\x1b[0m\n");
+
+	print_field_inline("SMDH read", status);
 }
 
-static void split_display_name(const char *display_name, char *line1, size_t line1Size, char *line2,
-	size_t line2Size)
+static void print_user_page(const title_pick_t *pick)
 {
-	const char *breakAt;
-	size_t len;
+	char title[TITLE_SMDH_LONG_NAME_UTF8_MAX];
 
-	line1[0] = '\0';
-	line2[0] = '\0';
-	if (display_name == NULL)
-		return;
+	collapse_title_newlines(pick->display_name, title, sizeof(title));
 
-	breakAt = strchr(display_name, '\n');
-	if (breakAt == NULL)
-		breakAt = strchr(display_name, '\r');
+	printf("\x1b[%d;1H\x1b[K", UI_CONTENT_ROW_TITLE);
+	printf("\x1b[37m%s\x1b[0m", title);
 
-	if (breakAt != NULL) {
-		len = (size_t)(breakAt - display_name);
-		if (len >= line1Size)
-			len = line1Size - 1;
-		memcpy(line1, display_name, len);
-		line1[len] = '\0';
+	printf("\x1b[%d;1H\x1b[K", UI_CONTENT_ROW_PUBLISHER);
+	if (pick->smdh.publisher[0] != '\0')
+		printf("\x1b[90m%s\x1b[0m", pick->smdh.publisher);
 
-		while (*breakAt == '\n' || *breakAt == '\r')
-			breakAt++;
-		strncpy(line2, breakAt, line2Size - 1);
-		line2[line2Size - 1] = '\0';
-	} else {
-		strncpy(line1, display_name, line1Size - 1);
-		line1[line1Size - 1] = '\0';
-	}
-}
+	printf("\x1b[%d;1H\x1b[K", UI_CONTENT_ROW_GAP);
 
-static void print_user_title(const char *display_name)
-{
-	char line1[TITLE_SMDH_LONG_NAME_UTF8_MAX];
-	char line2[TITLE_SMDH_LONG_NAME_UTF8_MAX];
+	printf("\x1b[%d;1H\x1b[K", UI_CONTENT_ROW_ACTIONS);
+	printf("\x1b[37mA\x1b[0m Launch   \x1b[37mY\x1b[0m Reroll");
 
-	split_display_name(display_name, line1, sizeof(line1), line2, sizeof(line2));
-	printf("\x1b[1;37m%s\x1b[0m\n", line1);
-	printf("\x1b[1;37m%s\x1b[0m\n\n", line2);
-}
-
-static void print_user_page(const ui_view_t *view)
-{
-	const title_pick_t *pick = view->pick;
-
-	print_user_title(pick->display_name);
-	print_label_value("Type", title_meta_category_name(pick->meta.content_category));
-
-	if (pick->is_homebrew)
-		printf("\x1b[90mUnlisted:\x1b[0m \x1b[1;37mYes\x1b[0m\n");
+	printf("\x1b[11;1H\x1b[K");
+	printf("\x1b[12;1H\x1b[K");
 }
 
 static void print_dev_details_page(const ui_view_t *view)
@@ -132,75 +303,99 @@ static void print_dev_details_page(const ui_view_t *view)
 	char region[TITLE_SMDH_LINE_UTF8_MAX];
 	char flags[TITLE_SMDH_LINE_UTF8_MAX];
 	char eula[32];
-
-	printf("\x1b[90mName source:\x1b[0m %s\n", name_source_label(pick->name_source));
-	if (pick->name_source == TITLE_NAME_SOURCE_CATALOG && pick->catalog_name != NULL)
-		print_label_value("Catalog fallback", pick->catalog_name);
-
-	print_label_value("Short name", pick->smdh.short_name);
-	print_label_value("Long name", pick->smdh.long_name);
-	print_label_value("Publisher", pick->smdh.publisher);
-	print_smdh_status(&pick->smdh);
+	char streetpass[16];
 
 	title_smdh_format_ratings(&pick->smdh, ratings, sizeof(ratings));
 	title_smdh_format_region_lock(pick->smdh.region_lock, region, sizeof(region));
 	title_smdh_format_flags(pick->smdh.flags, flags, sizeof(flags));
-
-	print_label_value("Ratings", ratings);
-	print_label_value("Region lock", region);
-	print_label_value("Flags", flags);
-
 	snprintf(eula, sizeof(eula), "%u.%u", pick->smdh.eula_major, pick->smdh.eula_minor);
-	print_label_value("EULA version", eula);
-	printf("\x1b[90mStreetPass ID:\x1b[0m %08lX\n", pick->smdh.cec_id);
+	snprintf(streetpass, sizeof(streetpass), "%08lX", pick->smdh.cec_id);
+
+	print_section_header("Names", true);
+	print_field_inline("Source", name_source_label(pick->name_source));
+	if (pick->name_source == TITLE_NAME_SOURCE_CATALOG && pick->catalog_name != NULL)
+		print_field_inline("Catalog", pick->catalog_name);
+	print_field_inline("Short", pick->smdh.short_name);
+	print_field_inline_wrap("Long", pick->smdh.long_name);
+	print_field_inline("Publisher", pick->smdh.publisher);
+	print_smdh_status(&pick->smdh);
+
+	print_section_header("Restrictions", false);
+	print_field_inline_wrap("Ratings", ratings);
+	print_field_inline("Region", region);
+	print_field_inline_wrap("Flags", flags);
+
+	print_section_header("Other", false);
+	print_field_inline("EULA", eula);
+	print_field_inline("StreetPass ID", streetpass);
 }
 
 static void print_dev_technical_page(const ui_view_t *view)
 {
 	const title_pick_t *pick = view->pick;
 	const title_filter_options_t *filters = view->filters;
+	char titleId[32];
+	char platformCode[16];
+	char categoryCode[16];
+	char uniqueId[16];
+	char variation[8];
+	char new3ds[8];
 	char size[32];
 	char version[16];
 	char extdata[32];
+	char status[48];
 
-	printf("\x1b[90mTitle ID:\x1b[0m %016llx\n", pick->titleId);
-	print_label_value("Platform", title_meta_platform_name(pick->meta.platform));
-	printf("\x1b[90mPlatform code:\x1b[0m 0x%04X\n", pick->meta.platform);
-	print_label_value("Category", title_meta_category_name(pick->meta.content_category));
-	printf("\x1b[90mCategory code:\x1b[0m 0x%04X\n", pick->meta.content_category);
-	printf("\x1b[90mUnique ID:\x1b[0m 0x%06lX\n", pick->meta.unique_id);
-	printf("\x1b[90mVariation:\x1b[0m 0x%02X\n", pick->meta.variation);
-	printf("\x1b[90mNew 3DS only:\x1b[0m %s\n", pick->meta.new3ds_only ? "Yes" : "No");
+	snprintf(titleId, sizeof(titleId), "%016llx", pick->titleId);
+	snprintf(platformCode, sizeof(platformCode), "0x%04X", pick->meta.platform);
+	snprintf(categoryCode, sizeof(categoryCode), "0x%04X", pick->meta.content_category);
+	snprintf(uniqueId, sizeof(uniqueId), "0x%06lX", pick->meta.unique_id);
+	snprintf(variation, sizeof(variation), "0x%02X", pick->meta.variation);
+	snprintf(new3ds, sizeof(new3ds), "%s", pick->meta.new3ds_only ? "Yes" : "No");
+
+	print_tech_field_inline("Title ID", titleId);
+	print_tech_field_inline("Platform", title_meta_platform_name(pick->meta.platform));
+	print_tech_field_inline("Platform code", platformCode);
+	print_tech_field_inline("Category", title_meta_category_name(pick->meta.content_category));
+	print_tech_field_inline("Category code", categoryCode);
+	print_tech_field_inline("Unique ID", uniqueId);
+	print_tech_field_inline("Variation", variation);
+	print_tech_field_inline("New 3DS only", new3ds);
 
 	if (pick->meta.product_code[0] != '\0')
-		print_label_value("Product code", pick->meta.product_code);
-	else if (R_FAILED(pick->meta.product_code_result))
-		printf("\x1b[90mProduct code:\x1b[0m \x1b[90munavailable %08lX\x1b[0m\n",
+		print_tech_field_inline("Product code", pick->meta.product_code);
+	else if (R_FAILED(pick->meta.product_code_result)) {
+		snprintf(status, sizeof(status), "unavailable %08lX",
 			(unsigned long)pick->meta.product_code_result);
+		print_tech_field_inline_dim("Product code", status);
+	}
+
+	printf("\n");
 
 	if (R_SUCCEEDED(pick->meta.title_info_result)) {
 		title_meta_format_version(pick->meta.version_major, pick->meta.version_minor, version, sizeof(version));
 		title_meta_format_size(pick->meta.installed_size, size, sizeof(size));
-		print_label_value("Version", version);
-		print_label_value("Installed size", size);
+		print_tech_field_inline("Version", version);
+		print_tech_field_inline("Installed size", size);
 	} else {
-		printf("\x1b[90mTitle info:\x1b[0m \x1b[90munavailable %08lX\x1b[0m\n",
+		snprintf(status, sizeof(status), "unavailable %08lX",
 			(unsigned long)pick->meta.title_info_result);
+		print_tech_field_inline_dim("Title info", status);
 	}
 
 	if (pick->meta.has_extdata) {
 		snprintf(extdata, sizeof(extdata), "%011llX", pick->meta.extdata_id);
-		print_label_value("Extdata ID", extdata);
+		print_tech_field_inline("Extdata ID", extdata);
 	} else if (R_FAILED(pick->meta.extdata_result)) {
-		printf("\x1b[90mExtdata ID:\x1b[0m \x1b[90munavailable %08lX\x1b[0m\n",
+		snprintf(status, sizeof(status), "unavailable %08lX",
 			(unsigned long)pick->meta.extdata_result);
+		print_tech_field_inline_dim("Extdata ID", status);
 	} else {
-		print_label_value("Extdata ID", NULL);
+		print_tech_field_inline("Extdata ID", NULL);
 	}
 
-	printf("\x1b[90mMedia:\x1b[0m %s\n", pick->media == MEDIATYPE_NAND ? "NAND" : "SD");
+	print_tech_field_inline("Media", pick->media == MEDIATYPE_NAND ? "NAND" : "SD");
 
-	printf("\n\x1b[90mLibrary\x1b[0m\n");
+	printf("\n");
 	printf("\x1b[90mSD:\x1b[0m %lu (%s)  \x1b[90mNAND:\x1b[0m %lu (%s)\n",
 		view->sd_title_count, media_inclusion_status(view->include_sd),
 		view->nand_title_count, media_inclusion_status(view->include_nand));
@@ -209,35 +404,70 @@ static void print_dev_technical_page(const ui_view_t *view)
 
 	if (filters != NULL) {
 		printf("\n");
-		printf("\x1b[90mFilters:\x1b[0m Native %s | VC %s\n",
-			toggle_text(filters->include_native_apps),
-			toggle_text(filters->include_virtual_console));
-		printf("\x1b[90m         \x1b[0m DSiWare %s | Demos %s | Content %s\n",
-			toggle_text(filters->include_dsiware),
-			toggle_text(filters->include_demos),
-			toggle_text(filters->include_content_packs));
-		printf("\x1b[90m         \x1b[0m DLC %s | Patches %s | System %s\n",
-			toggle_text(filters->include_dlc),
-			toggle_text(filters->include_patches),
-			toggle_text(filters->include_system));
-		printf("\x1b[90mSources:\x1b[0m SD %s | NAND %s | Unlisted %s\n",
-			toggle_text(view->include_sd),
-			toggle_text(view->include_nand),
-			toggle_text(view->include_homebrew));
+		print_filter_row2("Native apps", filters->include_native_apps,
+			"Virtual Console", filters->include_virtual_console);
+		print_filter_row2("DSiWare", filters->include_dsiware,
+			"Demos", filters->include_demos);
+		print_filter_row2("Content", filters->include_content_packs,
+			"DLC", filters->include_dlc);
+		print_filter_row2("Patches", filters->include_patches,
+			"System", filters->include_system);
+		print_filter_row2("SD titles", view->include_sd,
+			"NAND titles", view->include_nand);
+		print_filter_row2("Unlisted only", view->include_homebrew, NULL, false);
 	}
 }
 
-static void print_user_controls(const ui_view_t *view)
+static void ui_draw_nav_footer(const char *nav_label)
 {
-	printf("\n\x1b[90mPool:\x1b[0m \x1b[37m%lu pickable\x1b[0m\n", view->eligible_title_count);
-	printf("\n\x1b[37mA\x1b[0m Launch   \x1b[37mY\x1b[0m Reroll   \x1b[90mSELECT\x1b[0m Options\n");
-	printf("\x1b[90mL/R\x1b[0m Details   \x1b[90mX\x1b[0m Unlisted   \x1b[90mSTART\x1b[0m Exit\n");
+	u32 middleLen;
+	u32 middleCol;
+	u32 versionLen;
+	u32 versionCol;
+
+	middleLen = 4 + (u32)strlen(nav_label);
+	middleCol = (UI_CONSOLE_COLS - middleLen) / 2 + 1;
+	versionLen = 1 + (u32)strlen(APP_VERSION);
+	versionCol = UI_CONSOLE_COLS - versionLen + 1;
+
+	printf("\x1b[%d;1H" UI_INVERTED_BAR "\x1b[K", UI_CONSOLE_ROWS);
+	printf(UI_BAR_MAIN "START" UI_BAR_DIM " Exit");
+	printf("\x1b[%d;%dH" UI_INVERTED_BAR "\x1b[K", UI_CONSOLE_ROWS, (int)middleCol);
+	printf(UI_BAR_MAIN "L/R" UI_BAR_DIM " %s", nav_label);
+	printf("\x1b[%d;%dH" UI_INVERTED_BAR UI_BAR_DIM "v%s\x1b[0m", UI_CONSOLE_ROWS, (int)versionCol,
+		APP_VERSION);
+}
+
+static void print_user_controls(u32 eligible_title_count, u32 active_title_count, bool homebrew_only)
+{
+	printf("\x1b[%d;1H\x1b[K", UI_CONTROLS_ROW_FILTER_STATUS);
+	printf("\x1b[37m%lu\x1b[0m \x1b[90mof\x1b[0m \x1b[37m%lu\x1b[0m \x1b[90mtitles filtered\x1b[0m",
+		eligible_title_count, active_title_count);
+
+	printf("\x1b[%d;1H\x1b[K", UI_CONTROLS_ROW_FILTER_ACTIONS);
+	printf("\x1b[37mSELECT\x1b[90m filters   \x1b[37mX\x1b[0m ");
+	if (homebrew_only)
+		printf("\x1b[37mhomebrew only *\x1b[0m");
+	else
+		printf("\x1b[90mhomebrew only\x1b[0m");
+
+	printf("\x1b[%d;1H\x1b[K", UI_CONTROLS_ROW_FOOTER_GAP);
+
+	printf("\x1b[28;1H\x1b[K");
+	printf("\x1b[29;1H\x1b[K");
+
+	ui_draw_nav_footer("Details");
 }
 
 void ui_draw_header(void)
 {
+	const char *byline = "by selloa";
+	u32 bylineCol = UI_CONSOLE_COLS - (u32)strlen(byline) + 1;
+
 	consoleClear();
-	printf("\x1b[37mRANDOM GAME LAUNCHER\x1b[0m  \x1b[90mv%s\x1b[0m\n", APP_VERSION);
+	printf("\x1b[1;1H" UI_INVERTED_BAR "\x1b[K");
+	printf(UI_BAR_MAIN "RANDOM GAME LAUNCHER (2026)");
+	printf("\x1b[1;%dH" UI_INVERTED_BAR UI_BAR_DIM "%s\x1b[0m\n", (int)bylineCol, byline);
 }
 
 void ui_draw_main_screen(const ui_view_t *view)
@@ -246,11 +476,11 @@ void ui_draw_main_screen(const ui_view_t *view)
 		return;
 
 	ui_draw_header();
-	printf("\x1b[90m%s - %lu/%d\x1b[0m\n\n", page_title(view->page), view->page + 1, UI_PAGE_COUNT);
+	print_page_tabs(view->page);
 
 	switch (view->page) {
 	case 0:
-		print_user_page(view);
+		print_user_page(view->pick);
 		break;
 	case 1:
 		print_dev_details_page(view);
@@ -263,39 +493,21 @@ void ui_draw_main_screen(const ui_view_t *view)
 	}
 
 	if (view->page == 0)
-		print_user_controls(view);
+		print_user_controls(view->eligible_title_count, view->active_title_count,
+			view->include_homebrew);
 	else
-		printf("\n\x1b[90mL/R\x1b[0m Change page   \x1b[90mSTART\x1b[0m Exit\n");
+		ui_draw_nav_footer("Change page");
 }
 
-u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled,
-	ui_filter_row_is_action_fn row_is_action)
-{
-	u32 row;
-	u32 count = 0;
-
-	if (row_enabled == NULL)
-		return 0;
-
-	for (row = 0; row < row_count; row++) {
-		if (row_is_action != NULL && row_is_action(row))
-			continue;
-		if (row_enabled(row))
-			count++;
-	}
-
-	return count;
-}
-
-void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on, u32 eligible_count,
+void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 eligible_count,
 	ui_filter_row_enabled_fn row_enabled, ui_filter_row_label_fn row_label,
 	ui_filter_row_is_action_fn row_is_action)
 {
 	u32 row;
 
 	consoleClear();
-	printf("\n\x1b[37mOptions\x1b[0m  \x1b[90m(%lu on)\x1b[0m\n", filters_on);
-	printf("\x1b[90mPool:\x1b[0m \x1b[37m%lu pickable\x1b[0m\n\n", eligible_count);
+	printf("\n\x1b[37mOptions\x1b[0m\n");
+	printf("\x1b[90mPool:\x1b[0m \x1b[37m%lu pickable titles\x1b[0m\n\n", eligible_count);
 
 	for (row = 0; row < row_count; row++) {
 		if (row == 0)
@@ -306,7 +518,7 @@ void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on, u32 eligible
 			printf("\n\x1b[90mOther\x1b[0m\n");
 
 		if (row == cursor)
-			printf("\x1b[1;37m> ");
+			printf("\x1b[37m> ");
 		else
 			printf("  ");
 

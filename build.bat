@@ -13,7 +13,7 @@ if "%1"=="debug" (
         echo - Additional title information
         echo - No optimization for easier debugging
         echo.
-        echo Output files are in the dist/ directory (semver from VERSION file).
+        echo Output files are in the dist/ directory - semver from VERSION file.
     ) else (
         echo.
         echo DEBUG build failed!
@@ -27,12 +27,14 @@ if "%1"=="debug" (
         echo RELEASE build completed successfully!
         echo Optimized for performance and smaller size.
         echo.
-        echo Output files are in the dist/ directory (semver from VERSION file).
+        echo Output files are in the dist/ directory - semver from VERSION file.
     ) else (
         echo.
         echo RELEASE build failed!
         echo Please check the error messages above.
     )
+) else if "%1"=="banners" (
+    call meta\banner-src\build.bat
 ) else if "%1"=="clean" (
     echo Cleaning build files...
     make clean
@@ -50,10 +52,11 @@ if "%1"=="debug" (
         echo No dist/ directory found.
     )
 ) else (
-    echo Usage: build.bat [debug^|release^|clean^|list]
+    echo Usage: build.bat [debug^|release^|banners^|clean^|list]
     echo.
     echo debug   - Build with debug features enabled
     echo release - Build optimized release version
+    echo banners - Regenerate meta/banner*.png from meta/banner-src/ - needs: pip install pillow
     echo clean   - Clean build files and dist directory
     echo list    - List available builds in dist/ directory
     echo.

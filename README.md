@@ -71,21 +71,31 @@ cd 3DS-Random-Game-Launcher
 make
 ```
 
-The build reads semver from [`VERSION`](VERSION) (currently **0.2.0**) and writes to `dist/`, e.g. `3DS-Random-Game-Launcher-v0.2.0.3dsx`. See [docs/VERSIONING.md](docs/VERSIONING.md).
+The build reads semver from [`VERSION`](VERSION) and writes to `dist/`, e.g. `3DS-Random-Game-Launcher-v<VERSION>.3dsx`. See [docs/VERSIONING.md](docs/VERSIONING.md).
+
+`make` does **not** regenerate banner PNGs — it only embeds `icon.png` in the `.3dsx` SMDH. To refresh store/CIA banner artwork (including the version label), run `build.bat banners` (Windows) or `./build.sh banners` (Linux/Mac) before `build_cia.bat`.
 
 ```bash
-# Windows
-./build.bat release    # Release build
-./build.bat debug      # Debug build
+# Windows (PowerShell — preferred if cmd/app picker acts up)
+./build.ps1 release
+./build.ps1 debug
+./build.ps1 banners
+./build.ps1 clean
+
+# Windows (batch)
+./build.bat release
+./build.bat debug
+./build.bat banners
 ./build.bat clean
 
 # Linux/Mac
 ./build.sh release
 ./build.sh debug
+./build.sh banners
 ./build.sh clean
 ```
 
-**CIA builds:** run `build_cia.bat` (Windows) or follow [tools/README.md](tools/README.md). Uses prebuilt tools in `tools/bin/` — no submodules.
+**CIA builds:** run `build.bat banners` then `build_cia.bat` (Windows) or `./build.sh banners` before packaging — see [tools/README.md](tools/README.md). Uses prebuilt tools in `tools/bin/` — no submodules.
 
 **Debug build:** `make DEBUG=1` — adds `-debug` to output filenames and verbose logging.
 
@@ -94,8 +104,9 @@ The build reads semver from [`VERSION`](VERSION) (currently **0.2.0**) and write
 | Path | What it is |
 |------|------------|
 | `source/` | App source (`main.c`, `title_picker.c`, `title_smdh.c`, `settings.c`, `ui.c`, …) |
-| `Makefile`, `build.bat` | Build `.3dsx` homebrew |
+| `Makefile`, `build.bat`, `build.sh` | Build `.3dsx` homebrew |
 | `build_cia.bat` | One-step `.cia` packaging (Windows) |
+| `meta/banner-src/` | Config-driven banner generator — see [meta/banner-src/README.md](meta/banner-src/README.md) |
 | `dist/` | Versioned build output (gitignored) |
 | `scripts/` | Python tools to refresh the title database |
 | `meta/` | Distribution assets — see [meta/README.md](meta/README.md) |

@@ -38,4 +38,6 @@ Thumbs.db
 *.temp
 source/title_database_generated.c
 source/title_database.c.backup_*
-scripts/__pycache__/
+# Generated scratch output (committed copies live in meta/)
+meta/banner-src/output/
+

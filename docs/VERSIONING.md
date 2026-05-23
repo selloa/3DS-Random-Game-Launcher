@@ -42,6 +42,7 @@ Pre-releases use semver pre-release labels in `VERSION`, e.g. `0.2.0-beta.1`.
 | Debug builds | `3DS-Random-Game-Launcher-v0.1.9-debug.3dsx` |
 | Git tag | `v0.1.9` |
 | GitHub Release assets | Same basename as `dist/` |
+| Banner PNGs (`meta/banner*.png`) | Version label from `build.bat banners` / [`meta/banner-src/build.bat`](../meta/banner-src/build.bat) |
 | Universal-DB / Universal Updater | Pulled automatically from GitHub Releases (see [distribution doc](distribution/UNIVERSAL_UPDATER_SETUP.md)) |
 
 The Makefile no longer auto-increments `.build_number` or appends a permanent `-beta` suffix.
@@ -51,17 +52,18 @@ The Makefile no longer auto-increments `.build_number` or appends a permanent `-
 Distribution is via **Universal-DB** (default Universal Updater store). After you publish a GitHub Release with standalone assets, Universal-DB picks up the new version on its own schedule — no separate store file to maintain in this repo.
 
 1. Edit [`VERSION`](../VERSION) per semver rules.
-2. Regenerate title database if needed (`scripts/build_title_database.py`), then rebuild.
-3. Build: `make` or `build.bat release`; run `build_cia.bat` for the CIA.
-4. Verify artifacts in `dist/` (`.3dsx`, `.cia`, optionally `.elf` / `.smdh`).
-5. Commit `VERSION` (and any source changes).
-6. Tag: `git tag v0.1.9` (match `VERSION`).
-7. Push the tag, then **create a GitHub Release** from it on [GitHub](https://github.com/selloa/3DS-Random-Game-Launcher/releases/new):
+2. Regenerate banners: `build.bat banners` (Windows) or `./build.sh banners` (Linux/Mac). Or run [`meta/banner-src/build.bat`](../meta/banner-src/build.bat) / [`meta/banner-src/build.sh`](../meta/banner-src/build.sh) directly. Requires Python 3 + Pillow (`pip install -r requirements-dev.txt`). Updates `meta/banner.png`, `meta/cia-banner.png`, and `meta/banner-large.png` (version label reads `VERSION` automatically).
+3. Regenerate title database if needed (`scripts/build_title_database.py`), then rebuild.
+4. Build: `make` or `build.bat release`; run `build_cia.bat` for the CIA (embeds `meta/cia-banner.png`).
+5. Verify artifacts in `dist/` (`.3dsx`, `.cia`, optionally `.elf` / `.smdh`).
+6. Commit `VERSION`, updated `meta/banner*.png` if changed, and any source changes.
+7. Tag: `git tag v0.1.9` (match `VERSION`).
+8. Push the tag, then **create a GitHub Release** from it on [GitHub](https://github.com/selloa/3DS-Random-Game-Launcher/releases/new):
    - Title and release notes describing changes
    - Upload `dist/*.3dsx` and `dist/*.cia` as **individual files** (not zip-only)
-8. Wait for Universal-DB to refresh; confirm the app page shows the new version.
+9. Wait for Universal-DB to refresh; confirm the app page shows the new version.
 
-There is **no CI release workflow** in this repo yet — steps 3–7 are manual.
+There is **no CI release workflow** in this repo yet — steps 4–9 are manual.
 
 ## Development builds
 

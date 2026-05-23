@@ -1,0 +1,2 @@
+# Dev-only Python tools (title DB scripts, banner generator)
+pillow

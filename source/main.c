@@ -296,9 +296,7 @@ static bool filter_row_is_action(u32 row)
 
 static void draw_filter_menu(u32 cursor, const title_picker_pool_t *pool)
 {
-	u32 filters_on = ui_count_enabled_filters(FILTER_ROW_COUNT, filter_row_enabled, filter_row_is_action);
-
-	ui_draw_filter_menu(cursor, FILTER_ROW_COUNT, filters_on, pool->count, filter_row_enabled,
+	ui_draw_filter_menu(cursor, FILTER_ROW_COUNT, pool->count, filter_row_enabled,
 		filter_row_label, filter_row_is_action);
 }
 

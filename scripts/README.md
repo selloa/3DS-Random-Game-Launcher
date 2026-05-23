@@ -37,6 +37,7 @@ Then rebuild with `make` or `build.bat release`.
 | `fetch_3dsdb_batch.py` | Legacy | Batch variant of the Nlib fetch |
 | `expand_database.py` | Legacy | 3dsdb.com XML export only |
 | `fix_display_issues.py` | Utility | Cleans TM, HTML tags, and display characters in an existing `.c` file |
+| `fix-devkitpro-cmd-shadow.ps1` | **Windows** | Renames MSYS `usr\bin\cmd` shim so `cmd` resolves to `System32\cmd.exe` (fixes app picker / broken `.bat` from PowerShell) |
 
 ### Source priority (summary)
 

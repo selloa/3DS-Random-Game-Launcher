@@ -9,10 +9,23 @@ Tools for building installable `.cia` files. The main app build (`make` or `buil
 From the repo root:
 
 ```bat
+build.bat banners
 build_cia.bat
 ```
 
-This runs `make` → bannertool → makerom and writes `dist/3DS-Random-Game-Launcher-v<VERSION>.cia` (version from the `VERSION` file).
+For a release, bump [`VERSION`](../VERSION) first, then run `build.bat banners` so `meta/cia-banner.png` includes the new version label. See [VERSIONING.md](../docs/VERSIONING.md).
+
+`build_cia.bat` runs `make` → bannertool → makerom and writes `dist/3DS-Random-Game-Launcher-v<VERSION>.cia`. It **does not** regenerate banner PNGs — it reads whatever is already in `meta/`.
+
+## What each step uses
+
+| Step | Command | Banner-related inputs |
+|------|---------|------------------------|
+| Homebrew only | `make` / `build.bat release` | `icon.png` only (`.3dsx` SMDH). No `meta/banner*.png`. |
+| Regenerate artwork | `build.bat banners` / `./build.sh banners` | Writes `meta/banner.png`, `meta/cia-banner.png`, `meta/banner-large.png` from [`meta/banner-src/`](../meta/banner-src/) |
+| CIA package | `build_cia.bat` | `meta/cia-banner.png`, `meta/audio.wav`, `icon.png` → embedded in `.cia` |
+
+Regenerate banners: `build.bat banners` (Windows) or `./build.sh banners` (Linux/Mac). Requires Python 3 + Pillow (`pip install -r requirements-dev.txt`).
 
 ## Layout
 

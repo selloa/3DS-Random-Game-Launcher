@@ -1,0 +1,82 @@
+{
+  "background": {
+    "color": "#000000",
+    "opacity": 0.85,
+    "corner_radius": 8
+  },
+  "version": {
+    "file": "../../VERSION",
+    "prefix": "v",
+    "color": "#878587",
+    "margin_bottom": 6,
+    "font": {
+      "family": "Arial",
+      "size": 8,
+      "paths": [
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf"
+      ]
+    }
+  },
+  "design": {
+    "width": 256,
+    "height": 128,
+    "icon_to_text_gap": 19,
+    "icon": {
+      "path": "assets/icon.png",
+      "scale_to": 56,
+      "align_white_to": { "y": 46 }
+    },
+    "title": {
+      "lines": ["3DS Random", "Title Picker"],
+      "color": "#FF5D00",
+      "font": {
+        "family": "Arial Bold",
+        "size": 20,
+        "paths": [
+          "C:/Windows/Fonts/arialbd.ttf",
+          "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+          "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+          "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+        ]
+      },
+      "line_spacing": 2
+    },
+    "author": {
+      "text": "by selloa",
+      "color": "#878587",
+      "font": {
+        "family": "Arial",
+        "size": 10,
+        "paths": [
+          "C:/Windows/Fonts/arial.ttf",
+          "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+          "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+          "/System/Library/Fonts/Supplemental/Arial.ttf"
+        ]
+      },
+      "gap": 2,
+      "align": "center_under_title"
+    },
+    "extra_layers": []
+  },
+  "outputs": {
+    "banner": {
+      "path": "output/banner.png",
+      "scale": 1
+    },
+    "cia-banner": {
+      "path": "output/cia-banner.png",
+      "scale": 1,
+      "title_lines": ["3DS Random", "Game Launcher"]
+    },
+    "banner-large": {
+      "path": "output/banner-large.png",
+      "scale": 6,
+      "canvas": { "width": 1536, "height": 1024 },
+      "center": true
+    }
+  }
+}
