@@ -51,11 +51,30 @@ See [bannertool/README.md](../bannertool/README.md) for containerized builds.
 
 ### Other submodules
 
-CBuilder3DS is separate — initialize when working on CIA packaging:
+#### CBuilder3DS (CIA build reference)
+
+CBuilder3DS is a **template project** for packaging homebrew into `.cia` / `.3ds` files. It is **not** the Random Game Launcher app — the real source is `source/main.c` at the repo root.
+
+Initialize and verify:
 
 ```bash
 git submodule update --init CBuilder3DS
 ```
+
+Expected: `git submodule status CBuilder3DS` shows a space (not `-` or `+`) before the commit hash, and the working tree is clean.
+
+**Use the parent repo's tools, not the copies bundled inside CBuilder3DS:**
+
+| Task | Use this |
+|------|----------|
+| App ELF | Build at repo root (`make` → `3DS-Random-Game-Launcher.elf`) |
+| bannertool / makerom | `tools/bin/bannertool.exe`, `tools/bin/makerom.exe` |
+| RSF | `tools/3DS-Random-Game-Launcher.rsf` |
+| Banner / icon assets | Root `icon.png`, `meta/banner.png` |
+
+See `CBuilder3DS/build.bat` and `CBuilder3DS/BUILDING.md` for the **workflow pattern** (make → bannertool → makerom), but substitute paths above when building this project.
+
+CBuilder3DS ships with a Hello World `source/main.c` — ignore it unless you are experimenting inside that template.
 
 ## Typical CIA workflow
 
@@ -80,7 +99,15 @@ Adjust paths and add `-exefslogo` as needed. See `makerom/README.md` for full op
 
 ## CBuilder3DS reference
 
-The `CBuilder3DS/` submodule contains a working example that runs `make`, then bannertool + makerom in one script (`CBuilder3DS/build.bat`). Use it as a template when wiring CIA builds into this repo's main Makefile.
+The [CBuilder3DS](https://github.com/slalomsquid/CBuilder3DS) submodule is a CIA packaging template (fork of CIABUILDER). Use it to understand the build sequence, not as the app source tree.
+
+Workflow pattern from `CBuilder3DS/build.bat`:
+
+1. Compile ELF
+2. `bannertool makebanner` / `makesmdh`
+3. `makerom -f cia`
+
+When building **this** project, run those steps from the repo root using `tools/bin/` and the main app's ELF — see the CBuilder3DS section under **bannertool setup** above.
 
 ## Rebuilding makerom from source
 
