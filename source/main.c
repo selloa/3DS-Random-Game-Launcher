@@ -5,6 +5,10 @@
 #include <time.h>
 #include "title_database.h"
 
+#ifndef APP_VERSION
+#define APP_VERSION "0.0.0"
+#endif
+
 // Global variable to track homebrew toggle state
 static bool g_include_homebrew = false;
 
@@ -13,7 +17,8 @@ static bool g_include_homebrew = false;
 void clear_and_redraw_header(void) {
     consoleClear();
     printf("\n\x1b[37mRANDOM GAME LAUNCHER\x1b[0m\n");
-    printf("\x1b[90mby selloa (2025)\x1b[0m\n\n");
+    printf("\x1b[90mby selloa (2025)\x1b[0m\n");
+    printf("\x1b[90mv%s\x1b[0m\n\n", APP_VERSION);
 }
 
 

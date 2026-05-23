@@ -42,8 +42,8 @@ APP_TITLE	:= 3DS Random Game Launcher
 APP_DESCRIPTION	:= Launch a random game from your library
 APP_AUTHOR	:= selloa (2025)
 
-# Incremental build support
-VERSION := $(strip $(shell cat VERSION 2>/dev/null || echo 0.0.0))
+# Incremental build support (TOPDIR — inner make runs from build/)
+VERSION := $(strip $(shell cat $(TOPDIR)/VERSION 2>/dev/null || echo 0.0.0))
 VERSION_TAG := v$(VERSION)
 OUTPUT_DIR := dist
 DEBUG_SUFFIX := $(if $(DEBUG),-debug,)
@@ -59,14 +59,18 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-ffunction-sections \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -D__3DS__ -IC:/devkitPro/libctru/include
+CFLAGS	+=	$(INCLUDE) -D__3DS__ -IC:/devkitPro/libctru/include -DAPP_VERSION=\"$(VERSION)\"
 
 # Debug build support
 ifeq ($(DEBUG),1)
 	CFLAGS += -DDEBUG -O0
 endif
 
+export CFLAGS
+
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+export CXXFLAGS
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
