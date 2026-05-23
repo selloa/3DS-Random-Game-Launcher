@@ -10,7 +10,7 @@ Can't decide what to play? Let your 3DS pick for you.
 | `Makefile`, `build.bat` | Build `.3dsx` homebrew |
 | `dist/` | Versioned build output (gitignored) |
 | `scripts/` | Python tools to refresh the title database |
-| `meta/` | Icons and banners for Universal-DB / GitHub |
+| `meta/` | Distribution assets — see [meta/README.md](meta/README.md) |
 | `tools/` | CIA build binaries, RSF, and tooling docs |
 | `build_cia.bat` | One-step `.cia` packaging (Windows) |
 | `docs/` | Developer and tester documentation |

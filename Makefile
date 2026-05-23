@@ -38,16 +38,17 @@ DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
-APP_TITLE	:= 3DS Random Game Launcher
-APP_DESCRIPTION	:= Launch a random game from your library
-APP_AUTHOR	:= selloa (2025)
 
-# Incremental build support (TOPDIR — inner make runs from build/)
+# Semver from VERSION file (also used for APP_AUTHOR / SMDH)
 VERSION := $(strip $(shell cat $(TOPDIR)/VERSION 2>/dev/null || echo 0.0.0))
 VERSION_TAG := v$(VERSION)
 OUTPUT_DIR := dist
 DEBUG_SUFFIX := $(if $(DEBUG),-debug,)
 TARGET_NAME := $(TARGET)-$(VERSION_TAG)$(DEBUG_SUFFIX)
+
+APP_TITLE	:= 3DS Random Game Launcher
+APP_DESCRIPTION	:= Launch a random game from your library
+APP_AUTHOR	:= $(VERSION)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------

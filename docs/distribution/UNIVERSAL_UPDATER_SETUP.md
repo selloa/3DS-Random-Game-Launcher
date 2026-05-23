@@ -50,12 +50,12 @@ build_cia.bat           # Windows — adds .cia to dist/
 
 ## Assets used by Universal-DB
 
-These files in the repo are referenced by the Universal-DB listing:
+These files in the repo are referenced by the Universal-DB listing (full map: [../meta/README.md](../meta/README.md)):
 
 | Path | Purpose |
 |------|---------|
 | `icon.png` | App icon in Universal Updater |
-| `meta/banner.png` | Banner / large image on the app page |
+| `meta/banner.png` | Banner on the app page |
 | `meta/screenshot.png` | Optional screenshot |
 
 Keep them on `main` at stable raw GitHub URLs.

@@ -10,4 +10,6 @@
 | [installation.md](installation.md) | End-user install instructions |
 | [distribution/UNIVERSAL_UPDATER_SETUP.md](distribution/UNIVERSAL_UPDATER_SETUP.md) | **Distribution** — Universal-DB / Universal Updater |
 
+For `meta/` asset roles (banners, icon, audio), see [../meta/README.md](../meta/README.md).
+
 For CIA packaging, see [../tools/README.md](../tools/README.md).

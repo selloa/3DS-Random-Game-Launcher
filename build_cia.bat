@@ -23,7 +23,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Step 2: Creating banner and icon...
-tools\bin\bannertool.exe makebanner -i meta\banner.png -a meta\audio.wav -o build\banner.bnr
+tools\bin\bannertool.exe makebanner -i meta\cia-banner.png -a meta\audio.wav -o build\banner.bnr
 if %errorlevel% neq 0 (
     echo.
     echo bannertool makebanner failed!

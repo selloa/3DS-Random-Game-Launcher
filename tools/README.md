@@ -23,9 +23,8 @@ This runs `make` → bannertool → makerom and writes `dist/3DS-Random-Game-Lau
 | `tools/bin/makerom.exe` | CTR makerom — packages ELF into `.cia` |
 | `tools/bin/ctrtool.exe` | Inspect NCCH/CIA (optional) |
 | `tools/3DS-Random-Game-Launcher.rsf` | RSF metadata for this title |
-| `icon.png` | Home Menu icon source |
-| `meta/banner.png` | Top-screen banner image |
-| `meta/audio.wav` | Banner sound effect |
+
+Banner, icon, and audio sources are documented in [../meta/README.md](../meta/README.md).
 
 Intermediate files (`build/banner.bnr`, `build/icon.icn`) go in `build/` (gitignored).
 
@@ -45,7 +44,7 @@ If you prefer to run steps yourself:
 2. Create banner and icon:
 
 ```bat
-tools\bin\bannertool.exe makebanner -i meta\banner.png -a meta\audio.wav -o build\banner.bnr
+tools\bin\bannertool.exe makebanner -i meta\cia-banner.png -a meta\audio.wav -o build\banner.bnr
 tools\bin\bannertool.exe makesmdh -s "Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o build\icon.icn
 ```
 
