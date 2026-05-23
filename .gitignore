@@ -20,6 +20,8 @@ dist/
 *.3ds
 *.cci
 *.zip
+!releases/archive/
+!releases/archive/**
 
 # IDE files
 .vscode/
@@ -34,6 +36,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+source/title_database_generated.c
+source/title_database.c.backup_*
 
 # Submodule local build outputs
 CBuilder3DS/build/

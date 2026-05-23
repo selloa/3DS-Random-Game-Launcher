@@ -115,6 +115,7 @@ See `makerom/BUILDING.md`. On Windows, build inside the `makerom/` directory and
 
 ## Notes
 
-- CIA build outputs (`.cia`, `.cxi`) are gitignored — they belong in `dist/` or GitHub Releases.
+- CIA build outputs (`.cia`, `.cxi`) normally go in `dist/` (gitignored)
+- Tracked CIA archives live in [releases/archive/](../releases/archive/) for reference builds
 - The RSF references a `romfs/` directory; create it if your CIA needs embedded files.
 - CIA installs require CFW. Most users should still use the `.3dsx` from Homebrew Launcher.
