@@ -1,43 +1,37 @@
 # Scripts Directory
 
-This directory contains utility scripts for the 3DS Random Title Picker project.
+Python utilities for maintaining `source/title_database.c`.
 
-## expand_database.py
+## Recommended workflow
 
-A Python script to help expand the title database by fetching data from 3DSDB.
-
-### Usage
+Use **`fetch_3dsdb_complete.py`** — it pulls all regions (USA, EUR, JPN) from the [hax0kartik/3dsdb](https://github.com/hax0kartik/3dsdb) JSON files and generates C code.
 
 ```bash
-python3 scripts/expand_database.py
+python scripts/fetch_3dsdb_complete.py
 ```
 
-### What it does
+Review the output, merge entries into `source/title_database.c`, then rebuild with `make`.
 
-1. Fetches the latest game database from 3DSDB.com
-2. Parses the XML data to extract title ID to game name mappings
-3. Generates C code that can be integrated into `source/title_database.c`
+## All scripts
 
-### Requirements
+| Script | Status | Description |
+|--------|--------|-------------|
+| `fetch_3dsdb_complete.py` | **Primary** | Full regional fetch from 3dsdb GitHub JSONs |
+| `fetch_3dsdb_api.py` | Legacy | Fetches from `api.ghseshop.cc` |
+| `fetch_3dsdb_batch.py` | Legacy | Batch variant of the API fetch |
+| `expand_database.py` | Legacy | Fetches from 3dsdb.com XML export |
+| `fix_display_issues.py` | Utility | Fixes TM, apostrophe, and display characters in the database |
+
+The legacy fetch scripts predate `fetch_3dsdb_complete.py`. Keep them for reference or delete once you confirm the complete script covers your needs.
+
+## Requirements
 
 - Python 3.x
-- requests library (`pip install requests`)
+- `requests` (`pip install requests`)
 
-### Output
+## After updating the database
 
-The script generates `source/title_database_generated.c` which contains:
-- A C array of title ID to game name mappings
-- Properly formatted for integration into the main codebase
-
-### Integration
-
-After running the script:
-1. Review the generated code
-2. Copy relevant entries to `source/title_database.c`
-3. Test the build to ensure everything compiles correctly
-
-### Notes
-
-- The script includes error handling for network issues
-- It filters out unreasonably long game names
-- The generated code is ready to compile with the 3DS toolchain
+1. Review generated code for duplicates or bad entries
+2. Copy merged entries into `source/title_database.c`
+3. Run `make` or `build.bat release` to verify the build
+4. Test on hardware with titles that were previously missing or misnamed

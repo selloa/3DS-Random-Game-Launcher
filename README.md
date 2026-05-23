@@ -2,6 +2,21 @@
 
 Can't decide what to play? Let your 3DS pick for you.
 
+## Project map
+
+| Path | What it is |
+|------|------------|
+| `source/` | **App source** — `main.c` and `title_database.c` |
+| `Makefile`, `build.bat` | Build `.3dsx` homebrew |
+| `dist/` | Versioned build output (gitignored) |
+| `scripts/` | Python tools to refresh the title database |
+| `meta/`, `unistore.json` | Universal Updater distribution assets |
+| `tools/` | CIA build binaries, RSF, and tooling docs |
+| `makerom/`, `bannertool/`, `CBuilder3DS/` | CIA packaging (see [tools/README.md](tools/README.md)) |
+| `docs/` | Developer and tester documentation |
+
+**Quick start for development:** edit `source/`, run `make` or `build.bat release`, grab the `.3dsx` from `dist/`.
+
 ## What it does
 
 Scans your SD card, filters out system junk, and launches a random game. Simple as that.
@@ -62,6 +77,16 @@ make DEBUG=1
 ```
 
 Debug builds include the `-debug` suffix and show verbose output during execution.
+
+### CIA builds
+
+Installable `.cia` packaging is supported via the tooling in `tools/`. See [tools/README.md](tools/README.md) for setup (includes git submodules for bannertool and CBuilder3DS).
+
+### Documentation
+
+- [docs/README.md](docs/README.md) — full doc index
+- [docs/MAIN_C_FUNCTIONALITY.md](docs/MAIN_C_FUNCTIONALITY.md) — how `main.c` works
+- [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) — testing checklist
 
 ## Game Database Sources
 

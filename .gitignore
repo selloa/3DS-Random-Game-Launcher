@@ -9,10 +9,17 @@ dist/
 # Build number tracking
 .build_number
 
-# Generated files
+# Generated homebrew outputs
 *.3dsx
 *.elf
 *.smdh
+
+# Generated CIA / ROM outputs
+*.cia
+*.cxi
+*.3ds
+*.cci
+*.zip
 
 # IDE files
 .vscode/
@@ -27,3 +34,10 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Submodule local build outputs
+CBuilder3DS/build/
+CBuilder3DS/*.cia
+CBuilder3DS/*.3ds
+CBuilder3DS/*.elf
+CBuilder3DS/*.3dsx
