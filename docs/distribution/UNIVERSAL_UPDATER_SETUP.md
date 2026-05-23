@@ -16,6 +16,8 @@ Direct download from [GitHub Releases](https://github.com/selloa/3DS-Random-Game
 
 The app is registered in [Universal-Team/db](https://github.com/Universal-Team/db) (`source/apps/3ds-random-game-laucher.json`), pointing at `selloa/3DS-Random-Game-Launcher`.
 
+**Maintaining the Universal-DB listing:** edit [`3ds-random-game-laucher.json`](3ds-random-game-laucher.json) in this repo, then open a PR on [Universal-Team/db](https://github.com/Universal-Team/db) replacing `source/apps/3ds-random-game-laucher.json` with that file (filename typo `laucher` is intentional — match the existing entry).
+
 **First-time inclusion** is a one-time manual step: submit via the [App Request form](https://db.universal-team.net/app-request) and open a PR or issue on Universal-DB. That step is already done for this project.
 
 **Metadata** (title, description, icon, banner) comes from the app JSON in Universal-DB and your GitHub repo. To change long description or icons, update the Universal-DB entry or the URLs it references (`meta/banner.png`, `icon.png` on `main`).
