@@ -4,7 +4,8 @@
 #include <3ds.h>
 #include <stddef.h>
 
-#define TITLE_SMDH_SHORT_NAME_UTF8_MAX 129
+/* Short desc is 64 UTF-16 code units; UTF-8 can exceed 128 bytes (JP/CJK titles). */
+#define TITLE_SMDH_SHORT_NAME_UTF8_MAX 192
 
 typedef enum {
 	TITLE_SMDH_OK = 0,

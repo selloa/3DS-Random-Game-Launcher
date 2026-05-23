@@ -42,6 +42,83 @@ static u8 get_smdh_language_index(void)
 	return lang;
 }
 
+static void append_utf16_ascii(u16 *out, size_t *pos, size_t max, const char *ascii)
+{
+	while (*ascii && *pos + 1 < max) {
+		out[(*pos)++] = (u16)(unsigned char)*ascii;
+		ascii++;
+	}
+}
+
+/* Match scripts/title_db_common.py — symbols that render badly on the 3DS console. */
+static void sanitize_utf16_for_console(const u16 *in, u16 *out, size_t outMax)
+{
+	size_t pos = 0;
+	size_t i;
+
+	for (i = 0; i < 0x40 && in[i] != 0; i++) {
+		u16 c = in[i];
+
+		switch (c) {
+		case 0x2122: /* ™ */
+			append_utf16_ascii(out, &pos, outMax, "(TM)");
+			break;
+		case 0x00AE: /* ® */
+			append_utf16_ascii(out, &pos, outMax, "(R)");
+			break;
+		case 0x00A9: /* © */
+			append_utf16_ascii(out, &pos, outMax, "(C)");
+			break;
+		case 0x2013:
+		case 0x2014:
+			if (pos + 1 < outMax)
+				out[pos++] = '-';
+			break;
+		case 0x2018:
+		case 0x2019:
+			if (pos + 1 < outMax)
+				out[pos++] = '\'';
+			break;
+		case 0x201C:
+		case 0x201D:
+			if (pos + 1 < outMax)
+				out[pos++] = '"';
+			break;
+		case 0x2026:
+			append_utf16_ascii(out, &pos, outMax, "...");
+			break;
+		default:
+			if (pos + 1 < outMax)
+				out[pos++] = c;
+			break;
+		}
+	}
+
+	out[pos] = 0;
+}
+
+static void strip_truncated_utf8(char *out, size_t written, size_t maxLen)
+{
+	size_t len = written;
+
+	if (len >= maxLen)
+		len = maxLen - 1;
+
+	while (len > 0 && ((unsigned char)out[len - 1] & 0xC0) == 0x80)
+		len--;
+
+	if (len > 0) {
+		unsigned char b = (unsigned char)out[len - 1];
+
+		if ((b & 0xE0) == 0xE0 && len + 2 > written)
+			len--;
+		else if ((b & 0xF0) == 0xF0 && len + 3 > written)
+			len--;
+	}
+
+	out[len] = '\0';
+}
+
 static Result read_icon_into_buffer(Handle handle, u8 *iconData)
 {
 	u32 bytesRead = 0;
@@ -192,10 +269,22 @@ title_smdh_result_t title_smdh_get_short_name(u64 titleId, FS_MediaType media, c
 		return TITLE_SMDH_ERR_EMPTY;
 
 	{
-		ssize_t bytes = utf16_to_utf8((uint8_t *)out, name, outSize - 1);
+		u16 sanitized[0x80];
+		ssize_t bytes;
+		size_t outMax = outSize - 1;
+
+		if (outMax == 0)
+			return TITLE_SMDH_ERR_FORMAT;
+
+		sanitize_utf16_for_console(name, sanitized, sizeof(sanitized) / sizeof(sanitized[0]));
+		bytes = utf16_to_utf8((uint8_t *)out, sanitized, outMax);
 		if (bytes <= 0)
 			return TITLE_SMDH_ERR_EMPTY;
-		out[bytes] = '\0';
+
+		if ((size_t)bytes > outMax)
+			strip_truncated_utf8(out, outMax, outSize);
+		else
+			out[bytes] = '\0';
 	}
 
 	return TITLE_SMDH_OK;
