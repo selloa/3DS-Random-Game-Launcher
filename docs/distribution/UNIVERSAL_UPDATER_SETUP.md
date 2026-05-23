@@ -1,133 +1,78 @@
-# Universal Updater QR Code Setup Guide
+# Distribution (Universal Updater / Universal-DB)
 
-This guide explains how to set up a QR code for Universal Updater so users can easily install your 3DS Random Game Launcher homebrew app.
+This app is distributed through **[Universal-DB](https://db.universal-team.net/)**, the default app store built into [Universal Updater](https://github.com/Universal-Team/Universal-Updater). Users do not need a custom UniStore or QR code.
 
-## How Universal Updater QR Codes Work
+## How users install and update
 
-Universal Updater uses **UniStore** JSON files to list available apps. When a user scans a QR code:
-1. The QR code contains a URL pointing to a UniStore JSON file
-2. Universal Updater downloads and parses the JSON file
-3. The app appears in Universal Updater's app list
-4. Users can then download and install it directly
+1. Open **Universal Updater** on a 3DS with homebrew access.
+2. Make sure **Universal-DB** is selected (it is the default store).
+3. Search for **"3DS Random Game Launcher"**.
+4. Install the **CIA** (homescreen icon) or **3DSX** (Homebrew Launcher) from the app page.
+5. When a new GitHub Release is published, Universal Updater shows an update badge after Universal-DB refreshes (typically within a few hours).
 
-## What the QR Code Links To
+Direct download from [GitHub Releases](https://github.com/selloa/3DS-Random-Game-Launcher/releases) remains available for users who prefer manual installs.
 
-The QR code should link to the **URL of your UniStore JSON file** (not directly to the `.3dsx` file).
+## Listing in Universal-DB
 
-For example:
-```
-https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/unistore.json
-```
+The app is registered in [Universal-Team/db](https://github.com/Universal-Team/db) (`source/apps/3ds-random-game-laucher.json`), pointing at `selloa/3DS-Random-Game-Launcher`.
 
-Or if hosting elsewhere:
-```
-https://yourdomain.com/3DS-Random-Game-Launcher/unistore.json
-```
+**First-time inclusion** is a one-time manual step: submit via the [App Request form](https://db.universal-team.net/app-request) and open a PR or issue on Universal-DB. That step is already done for this project.
 
-## Setup Steps
+**Metadata** (title, description, icon, banner) comes from the app JSON in Universal-DB and your GitHub repo. To change long description or icons, update the Universal-DB entry or the URLs it references (`meta/banner.png`, `icon.png` on `main`).
 
-### 1. Host Your Files
+## How updates reach Universal Updater
 
-You need to host:
-- **UniStore JSON file** (`unistore.json`) - Contains app metadata
-- **App file** (`.3dsx`) - The actual homebrew executable
-- **Icon** (`icon.png`) - App icon (optional but recommended)
-- **Banner** (`meta/banner.png`) - App banner (optional but recommended)
-- **Screenshot** (`meta/screenshot.png`) - App screenshot (optional but recommended)
+There is no push API. Universal-DB runs scheduled GitHub Actions that:
 
-**Option A: GitHub (Recommended)**
-- Upload `unistore.json` to your repository root
-- Upload `.3dsx` files to GitHub Releases
-- Use GitHub's raw file URLs (e.g., `https://raw.githubusercontent.com/...`)
+- Read each listed app's GitHub repo and **releases**
+- Generate install scripts for standalone `.3dsx` / `.cia` assets
+- Rebuild `universal-db.unistore`, which Universal Updater downloads
 
-**Option B: Your Own Server**
-- Host all files on a web server with HTTPS
-- Ensure files are publicly accessible
+**Your release responsibility:** publish a semver GitHub Release with individual `.3dsx` and `.cia` files attached. Do **not** rely on zip-only releases — Universal-DB handles standalone binaries automatically; archives need extra configuration.
 
-### 2. Update the UniStore JSON
+See [VERSIONING.md](../VERSIONING.md) for the full release checklist.
 
-Edit `unistore.json` and update:
-- `downloadUrl`: Direct URL to your latest `.3dsx` file
-- `iconUrl`: URL to your icon (if hosted)
-- `bannerUrl`: URL to your banner (if hosted)
-- `screenshots`: Array of screenshot URLs (if hosted)
-- `version`: Must match [`VERSION`](../VERSION) in the repo root (see [VERSIONING.md](../VERSIONING.md))
+## Release assets Universal-DB expects
 
-**Important URLs:**
-- For GitHub Releases: `https://github.com/USERNAME/REPO/releases/latest/download/FILENAME.3dsx`
-- For GitHub raw files: `https://raw.githubusercontent.com/USERNAME/REPO/BRANCH/PATH`
+Upload these from `dist/` when creating a GitHub Release (tag `vX.Y.Z`, matching [`VERSION`](../../VERSION)):
 
-### 3. Generate the QR Code
+| File | Example |
+|------|---------|
+| 3DSX | `3DS-Random-Game-Launcher-v0.1.9.3dsx` |
+| CIA | `3DS-Random-Game-Launcher-v0.1.9.cia` |
 
-Use any QR code generator to create a QR code containing the URL to your `unistore.json` file.
+Build locally:
 
-**Online QR Code Generators:**
-- https://www.qr-code-generator.com/
-- https://qr-code-generator.com/
-- https://www.the-qrcode-generator.com/
-
-**QR Code Content Example:**
-```
-https://raw.githubusercontent.com/selloa/3DS-Random-Game-Launcher/main/unistore.json
+```bash
+make                    # or build.bat release
+build_cia.bat           # Windows — adds .cia to dist/
 ```
 
-### 4. Test the Setup
+## Assets used by Universal-DB
 
-1. Generate the QR code
-2. Open Universal Updater on your 3DS
-3. Go to Settings → Select UniStore → Tap "+" → Scan QR Code
-4. Scan your QR code
-5. Verify your app appears in the list
-6. Test downloading and installing
+These files in the repo are referenced by the Universal-DB listing:
 
-## Example Workflow
+| Path | Purpose |
+|------|---------|
+| `icon.png` | App icon in Universal Updater |
+| `meta/banner.png` | Banner / large image on the app page |
+| `meta/screenshot.png` | Optional screenshot |
 
-1. **Release a new version:**
-   - Bump [`VERSION`](../VERSION) per [VERSIONING.md](../VERSIONING.md)
-   - Build your `.3dsx` file (`make` → `dist/3DS-Random-Game-Launcher-vX.Y.Z.3dsx`)
-   - Create a GitHub Release (tag `vX.Y.Z`) and upload the `.3dsx` file
-   - Update `unistore.json` with the new version string and download URL
-   - Commit and push `unistore.json` to your repository
-
-2. **Users install:**
-   - Users scan your QR code (which points to `unistore.json`)
-   - Universal Updater adds your UniStore
-   - Users see "3DS Random Game Launcher" in the app list
-   - Users tap to download and install
-
-## Tips
-
-- **Keep URLs updated**: When you release new versions, update the `downloadUrl` in `unistore.json`
-- **Use GitHub Releases**: GitHub Releases provide stable download URLs that don't change
-- **HTTPS required**: Universal Updater requires HTTPS URLs for security
-- **Version numbers**: Keep `unistore.json` in sync with [`VERSION`](../VERSION)
-- **Test first**: Always test the QR code yourself before sharing it publicly
-
-## Alternative: Direct File QR Code (FBI)
-
-If you want users to install directly via FBI instead of Universal Updater:
-- Generate a QR code pointing directly to your `.3dsx` or `.cia` file
-- Users scan with FBI → Remote Install → Scan QR Code
-- This bypasses Universal Updater entirely
-
-However, Universal Updater is preferred because:
-- Users can see app info, screenshots, and descriptions
-- Easier to update (just update the JSON)
-- Better user experience
+Keep them on `main` at stable raw GitHub URLs.
 
 ## Troubleshooting
 
-**QR code doesn't work:**
-- Ensure the URL is accessible (test in a browser)
-- Check that the URL uses HTTPS (not HTTP)
-- Verify the JSON file is valid JSON
+**App not showing an update in Universal Updater**
 
-**App doesn't appear:**
-- Check that `unistore.json` is valid JSON
-- Verify all required fields are present
-- Check the console for error messages
+- Confirm a GitHub Release exists for the new tag and assets are uploaded.
+- Universal-DB may take up to ~6 hours to refresh (hourly for priority apps).
+- Check [Universal-DB app page](https://db.universal-team.net/3ds/3ds-random-game-launcher) for the version it currently advertises.
 
-**Download fails:**
-- Ensure the `downloadUrl` is publicly accessible
-- Check that the file exists at that URL
-- Verify the URL uses HTTPS
+**Download or install fails**
+
+- Ensure release assets are standalone `.3dsx` / `.cia`, not only a zip.
+- CIA installs require a CFW environment; 3DSX requires Homebrew Launcher.
+
+**Need to change Universal-DB listing**
+
+- Open an issue or PR on [Universal-Team/db](https://github.com/Universal-Team/db), or ask on the [Universal-Team Discord](https://universal-team.net/discord).

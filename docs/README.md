@@ -8,6 +8,6 @@
 | [DEBUG_IMPROVEMENTS.md](DEBUG_IMPROVEMENTS.md) | Debug logging and error handling |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | Tester checklist and bug reporting |
 | [installation.md](installation.md) | End-user install instructions |
-| [distribution/UNIVERSAL_UPDATER_SETUP.md](distribution/UNIVERSAL_UPDATER_SETUP.md) | Universal Updater / UniStore setup |
+| [distribution/UNIVERSAL_UPDATER_SETUP.md](distribution/UNIVERSAL_UPDATER_SETUP.md) | **Distribution** — Universal-DB / Universal Updater |
 
 For CIA packaging, see [../tools/README.md](../tools/README.md).

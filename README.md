@@ -10,7 +10,7 @@ Can't decide what to play? Let your 3DS pick for you.
 | `Makefile`, `build.bat` | Build `.3dsx` homebrew |
 | `dist/` | Versioned build output (gitignored) |
 | `scripts/` | Python tools to refresh the title database |
-| `meta/`, `unistore.json` | Universal Updater distribution assets |
+| `meta/` | Icons and banners for Universal-DB / GitHub |
 | `tools/` | CIA build binaries, RSF, and tooling docs |
 | `build_cia.bat` | One-step `.cia` packaging (Windows) |
 | `docs/` | Developer and tester documentation |
@@ -31,21 +31,23 @@ Scans your SD card and launches a random installed title. Names come from the bu
 
 ## Download (For Users)
 
-**Easy Setup on 3DS**
+**Recommended: Universal Updater (Universal-DB)**
+
+The app is listed on [Universal-DB](https://db.universal-team.net/3ds/3ds-random-game-launcher), the default store in Universal Updater. Updates appear automatically after new GitHub Releases are published.
 
 1. **Open Universal Updater** on your 3DS
-2. **Search for "3DS Random Game Launcher"** and install the CIA file
-3. **Exit Universal Updater** - wait a moment for the new app to appear on Homescreen
-4. **Launch 3DS Random Game Launcher** from the 3DS Homescreen
+2. **Search for "3DS Random Game Launcher"**
+3. Install the **CIA** (homescreen) or **3DSX** (Homebrew Launcher)
+4. Launch from the homescreen or Homebrew Launcher
 
-**Don't want to build? Just download and play!**
+See [docs/distribution/UNIVERSAL_UPDATER_SETUP.md](docs/distribution/UNIVERSAL_UPDATER_SETUP.md) for distribution details.
 
-1. **Click the "Releases" link** on the right side of this page (or go to https://github.com/selloa/3DS-Random-Game-Launcher/releases)
-2. **Download the latest release** - look for the `.3dsx` file (that's what you need)
-3. **Copy the `.3dsx` file** to your 3DS SD card in the `/3ds/` folder
-4. **Launch from Homebrew Launcher** on your 3DS
+**Manual install from GitHub Releases**
 
-**That's it!** No building required. The `.3dsx` file is ready to run.
+1. Go to [GitHub Releases](https://github.com/selloa/3DS-Random-Game-Launcher/releases)
+2. Download the latest `.3dsx` or `.cia`
+3. **3DSX:** copy to `/3ds/` on your SD card and launch via Homebrew Launcher
+4. **CIA:** install with FBI or Universal Updater
 
 ## Building (For Developers)
 

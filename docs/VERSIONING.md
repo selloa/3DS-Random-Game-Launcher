@@ -29,7 +29,7 @@ After **0.1.x**, follow normal semver (not `0.1.20` for “v20”):
 | Bump | When |
 |------|------|
 | **MAJOR** | Breaking changes: CIA title ID change (reinstall required), config format break, picker behavior users rely on changes |
-| **MINOR** | New features: SMDH lookup, new filters, UniStore-visible functionality |
+| **MINOR** | New features: SMDH lookup, new filters, user-visible functionality in Universal Updater |
 | **PATCH** | Bug fixes, title database refresh only, docs/tooling, no user-visible behavior change |
 
 Pre-releases use semver pre-release labels in `VERSION`, e.g. `0.2.0-beta.1`.
@@ -42,20 +42,26 @@ Pre-releases use semver pre-release labels in `VERSION`, e.g. `0.2.0-beta.1`.
 | Debug builds | `3DS-Random-Game-Launcher-v0.1.9-debug.3dsx` |
 | Git tag | `v0.1.9` |
 | GitHub Release assets | Same basename as `dist/` |
-| [`unistore.json`](../unistore.json) | `"version": "0.1.9"` (must match manually on release) |
+| Universal-DB / Universal Updater | Pulled automatically from GitHub Releases (see [distribution doc](distribution/UNIVERSAL_UPDATER_SETUP.md)) |
 
 The Makefile no longer auto-increments `.build_number` or appends a permanent `-beta` suffix.
 
 ## Release checklist
 
+Distribution is via **Universal-DB** (default Universal Updater store). After you publish a GitHub Release with standalone assets, Universal-DB picks up the new version on its own schedule — no separate store file to maintain in this repo.
+
 1. Edit [`VERSION`](../VERSION) per semver rules.
-2. Update [`unistore.json`](../unistore.json): `apps[].version`, `releaseNotes`, and `downloadUrl` if needed.
-3. Build: `make` or `build.bat release`.
-4. Verify artifacts in `dist/`.
-5. Commit `VERSION` (and `unistore.json` if changed).
-6. Tag: `git tag v$(cat VERSION)` (e.g. `v0.1.9`).
-7. Create GitHub Release from the tag; upload `dist/*` assets.
-8. For CIA builds, bump makerom version fields to match (see [tools/README.md](../tools/README.md)).
+2. Regenerate title database if needed (`scripts/build_title_database.py`), then rebuild.
+3. Build: `make` or `build.bat release`; run `build_cia.bat` for the CIA.
+4. Verify artifacts in `dist/` (`.3dsx`, `.cia`, optionally `.elf` / `.smdh`).
+5. Commit `VERSION` (and any source changes).
+6. Tag: `git tag v0.1.9` (match `VERSION`).
+7. Push the tag, then **create a GitHub Release** from it on [GitHub](https://github.com/selloa/3DS-Random-Game-Launcher/releases/new):
+   - Title and release notes describing changes
+   - Upload `dist/*.3dsx` and `dist/*.cia` as **individual files** (not zip-only)
+8. Wait for Universal-DB to refresh; confirm the app page shows the new version.
+
+There is **no CI release workflow** in this repo yet — steps 3–7 are manual.
 
 ## Development builds
 
