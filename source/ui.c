@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #ifndef APP_VERSION
 #define APP_VERSION "0.0.0"
@@ -71,15 +72,57 @@ static void print_smdh_status(const title_smdh_info_t *smdh)
 	printf("\x1b[0m\n");
 }
 
+static void split_display_name(const char *display_name, char *line1, size_t line1Size, char *line2,
+	size_t line2Size)
+{
+	const char *breakAt;
+	size_t len;
+
+	line1[0] = '\0';
+	line2[0] = '\0';
+	if (display_name == NULL)
+		return;
+
+	breakAt = strchr(display_name, '\n');
+	if (breakAt == NULL)
+		breakAt = strchr(display_name, '\r');
+
+	if (breakAt != NULL) {
+		len = (size_t)(breakAt - display_name);
+		if (len >= line1Size)
+			len = line1Size - 1;
+		memcpy(line1, display_name, len);
+		line1[len] = '\0';
+
+		while (*breakAt == '\n' || *breakAt == '\r')
+			breakAt++;
+		strncpy(line2, breakAt, line2Size - 1);
+		line2[line2Size - 1] = '\0';
+	} else {
+		strncpy(line1, display_name, line1Size - 1);
+		line1[line1Size - 1] = '\0';
+	}
+}
+
+static void print_user_title(const char *display_name)
+{
+	char line1[TITLE_SMDH_LONG_NAME_UTF8_MAX];
+	char line2[TITLE_SMDH_LONG_NAME_UTF8_MAX];
+
+	split_display_name(display_name, line1, sizeof(line1), line2, sizeof(line2));
+	printf("\x1b[1;37m%s\x1b[0m\n", line1);
+	printf("\x1b[1;37m%s\x1b[0m\n\n", line2);
+}
+
 static void print_user_page(const ui_view_t *view)
 {
 	const title_pick_t *pick = view->pick;
 
-	printf("\x1b[1;37m%s\x1b[0m\n\n", pick->display_name);
+	print_user_title(pick->display_name);
 	print_label_value("Type", title_meta_category_name(pick->meta.content_category));
 
 	if (pick->is_homebrew)
-		printf("\x1b[90mHomebrew:\x1b[0m \x1b[1;37mYes\x1b[0m\n");
+		printf("\x1b[90mUnlisted:\x1b[0m \x1b[1;37mYes\x1b[0m\n");
 }
 
 static void print_dev_details_page(const ui_view_t *view)
@@ -94,6 +137,7 @@ static void print_dev_details_page(const ui_view_t *view)
 	if (pick->name_source == TITLE_NAME_SOURCE_CATALOG && pick->catalog_name != NULL)
 		print_label_value("Catalog fallback", pick->catalog_name);
 
+	print_label_value("Short name", pick->smdh.short_name);
 	print_label_value("Long name", pick->smdh.long_name);
 	print_label_value("Publisher", pick->smdh.publisher);
 	print_smdh_status(&pick->smdh);
@@ -165,18 +209,18 @@ static void print_dev_technical_page(const ui_view_t *view)
 
 	if (filters != NULL) {
 		printf("\n");
-		printf("\x1b[90mFilters:\x1b[0m Patches %s | DLC %s | System %s\n",
-			toggle_text(filters->include_patches),
-			toggle_text(filters->include_dlc),
-			toggle_text(filters->include_system));
-		printf("\x1b[90m         \x1b[0m Demos %s | DSiWare %s | Content %s\n",
-			toggle_text(filters->include_demos),
-			toggle_text(filters->include_dsiware),
-			toggle_text(filters->include_content_packs));
-		printf("\x1b[90m         \x1b[0m Native %s | VC %s\n",
+		printf("\x1b[90mFilters:\x1b[0m Native %s | VC %s\n",
 			toggle_text(filters->include_native_apps),
 			toggle_text(filters->include_virtual_console));
-		printf("\x1b[90mSources:\x1b[0m SD %s | NAND %s | Homebrew %s\n",
+		printf("\x1b[90m         \x1b[0m DSiWare %s | Demos %s | Content %s\n",
+			toggle_text(filters->include_dsiware),
+			toggle_text(filters->include_demos),
+			toggle_text(filters->include_content_packs));
+		printf("\x1b[90m         \x1b[0m DLC %s | Patches %s | System %s\n",
+			toggle_text(filters->include_dlc),
+			toggle_text(filters->include_patches),
+			toggle_text(filters->include_system));
+		printf("\x1b[90mSources:\x1b[0m SD %s | NAND %s | Unlisted %s\n",
 			toggle_text(view->include_sd),
 			toggle_text(view->include_nand),
 			toggle_text(view->include_homebrew));
@@ -187,7 +231,7 @@ static void print_user_controls(const ui_view_t *view)
 {
 	printf("\n\x1b[90mPool:\x1b[0m \x1b[37m%lu pickable\x1b[0m\n", view->eligible_title_count);
 	printf("\n\x1b[37mA\x1b[0m Launch   \x1b[37mY\x1b[0m Reroll   \x1b[90mSELECT\x1b[0m Options\n");
-	printf("\x1b[90mL/R\x1b[0m Details   \x1b[90mX\x1b[0m Homebrew   \x1b[90mSTART\x1b[0m Exit\n");
+	printf("\x1b[90mL/R\x1b[0m Details   \x1b[90mX\x1b[0m Unlisted   \x1b[90mSTART\x1b[0m Exit\n");
 }
 
 void ui_draw_header(void)
@@ -202,7 +246,7 @@ void ui_draw_main_screen(const ui_view_t *view)
 		return;
 
 	ui_draw_header();
-	printf("\x1b[90m%s · %lu/%d\x1b[0m\n\n", page_title(view->page), view->page + 1, UI_PAGE_COUNT);
+	printf("\x1b[90m%s - %lu/%d\x1b[0m\n\n", page_title(view->page), view->page + 1, UI_PAGE_COUNT);
 
 	switch (view->page) {
 	case 0:
@@ -224,7 +268,8 @@ void ui_draw_main_screen(const ui_view_t *view)
 		printf("\n\x1b[90mL/R\x1b[0m Change page   \x1b[90mSTART\x1b[0m Exit\n");
 }
 
-u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled)
+u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled,
+	ui_filter_row_is_action_fn row_is_action)
 {
 	u32 row;
 	u32 count = 0;
@@ -233,6 +278,8 @@ u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled
 		return 0;
 
 	for (row = 0; row < row_count; row++) {
+		if (row_is_action != NULL && row_is_action(row))
+			continue;
 		if (row_enabled(row))
 			count++;
 	}
@@ -240,13 +287,15 @@ u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled
 	return count;
 }
 
-void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on,
-	ui_filter_row_enabled_fn row_enabled, ui_filter_row_label_fn row_label)
+void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on, u32 eligible_count,
+	ui_filter_row_enabled_fn row_enabled, ui_filter_row_label_fn row_label,
+	ui_filter_row_is_action_fn row_is_action)
 {
 	u32 row;
 
 	consoleClear();
-	printf("\n\x1b[37mOptions\x1b[0m  \x1b[90m(%lu on)\x1b[0m\n\n", filters_on);
+	printf("\n\x1b[37mOptions\x1b[0m  \x1b[90m(%lu on)\x1b[0m\n", filters_on);
+	printf("\x1b[90mPool:\x1b[0m \x1b[37m%lu pickable\x1b[0m\n\n", eligible_count);
 
 	for (row = 0; row < row_count; row++) {
 		if (row == 0)
@@ -261,11 +310,15 @@ void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on,
 		else
 			printf("  ");
 
-		printf("%-16s %s\x1b[0m\n", row_label(row),
-			row_enabled(row) ? "\x1b[37mON" : "\x1b[90mOFF");
+		if (row_is_action != NULL && row_is_action(row)) {
+			printf("%s\x1b[0m\n", row_label(row));
+		} else {
+			printf("%-16s %s\x1b[0m\n", row_label(row),
+				row_enabled(row) ? "\x1b[37mON" : "\x1b[90mOFF");
+		}
 	}
 
-	printf("\n\x1b[90mUp/Down  A toggle  B/SELECT close\x1b[0m\n");
+	printf("\n\x1b[90mUp/Down  A toggle/apply  B/SELECT close\x1b[0m\n");
 }
 
 void ui_draw_empty_pool_message(u32 sd_count, u32 nand_count, bool include_sd, bool include_nand,
@@ -280,5 +333,5 @@ void ui_draw_empty_pool_message(u32 sd_count, u32 nand_count, bool include_sd, b
 	if (suggest_sources)
 		printf(" and enable SD or NAND sources");
 	printf(".\n\n");
-	printf("\x1b[90mSTART\x1b[0m Exit\n");
+	printf("\x1b[90mSELECT\x1b[0m Options   \x1b[90mSTART\x1b[0m Exit\n");
 }

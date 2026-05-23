@@ -53,6 +53,122 @@ static void append_utf16_ascii(u16 *out, size_t *pos, size_t max, const char *as
 }
 
 /* Match scripts/title_db_common.py — symbols that render poorly on the 3DS console. */
+static const char *console_codepoint_replacement(u32 cp)
+{
+	static const char *roman[] = {
+		"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+		"XI", "XII", "XIII", "XIV", "XV", "XVI"
+	};
+
+	switch (cp) {
+	case 0x2122:
+		return "(TM)";
+	case 0x00AE:
+		return "(R)";
+	case 0x00A9:
+		return "(C)";
+	case 0x2013:
+	case 0x2014:
+	case 0x00B7:
+	case 0x30FB:
+	case 0xFF65:
+		return "-";
+	case 0x2018:
+	case 0x2019:
+	case 0x2032:
+		return "'";
+	case 0x201C:
+	case 0x201D:
+	case 0x2033:
+		return "\"";
+	case 0x2026:
+		return "...";
+	case 0x2022:
+	case 0x2605:
+	case 0x2606:
+	case 0x25CF:
+	case 0xFF0A:
+		return "*";
+	case 0x00D7:
+		return "x";
+	case 0x00F7:
+		return "/";
+	case 0x25CB:
+		return "O";
+	case 0x266A:
+	case 0x266B:
+		return "*";
+	case 0x2665:
+	case 0x2661:
+		return "*";
+	case 0x00A0:
+	case 0x2002:
+	case 0x2003:
+	case 0x2004:
+	case 0x2005:
+	case 0x2006:
+	case 0x2007:
+	case 0x2008:
+	case 0x2009:
+	case 0x200A:
+		return " ";
+	default:
+		break;
+	}
+
+	if (cp >= 0x2160 && cp <= 0x216F)
+		return roman[cp - 0x2160];
+	if (cp >= 0x2170 && cp <= 0x217F)
+		return roman[cp - 0x2170];
+
+	return NULL;
+}
+
+static bool console_codepoint_should_drop(u32 cp)
+{
+	if (cp == '\n' || cp == '\r' || cp == '\t')
+		return false;
+	if (cp < 0x20 || cp == 0x7F)
+		return true;
+	if (cp == 0xFEFF || cp == 0x200B || cp == 0x200C || cp == 0x200D)
+		return true;
+	if (cp > 0xFFFF)
+		return true;
+	if (cp >= 0xE000 && cp <= 0xF8FF)
+		return true;
+	if (cp >= 0x2190 && cp <= 0x21FF)
+		return true;
+	if (cp >= 0x2200 && cp <= 0x22FF)
+		return true;
+	if (cp >= 0x2300 && cp <= 0x23FF)
+		return true;
+	if (cp >= 0x2600 && cp <= 0x26FF)
+		return true;
+	if (cp >= 0x2700 && cp <= 0x27BF)
+		return true;
+	return false;
+}
+
+static void append_utf8_text(char *out, size_t *pos, size_t max, const char *text)
+{
+	while (text != NULL && *text && *pos + 1 < max)
+		out[(*pos)++] = *text++;
+}
+
+static void append_utf8_codepoint(char *out, size_t *pos, size_t max, u32 cp)
+{
+	uint8_t encoded[4];
+	ssize_t bytes;
+	size_t i;
+
+	bytes = encode_utf8(encoded, cp);
+	if (bytes <= 0)
+		return;
+
+	for (i = 0; i < (size_t)bytes && *pos + 1 < max; i++)
+		out[(*pos)++] = (char)encoded[i];
+}
+
 static void sanitize_utf16_for_console(const u16 *in, u16 *out, size_t outMax, size_t inMaxChars)
 {
 	size_t pos = 0;
@@ -60,43 +176,68 @@ static void sanitize_utf16_for_console(const u16 *in, u16 *out, size_t outMax, s
 
 	for (i = 0; i < inMaxChars && in[i] != 0; i++) {
 		u16 c = in[i];
+		const char *replacement = console_codepoint_replacement(c);
 
-		switch (c) {
-		case 0x2122: /* TM */
-			append_utf16_ascii(out, &pos, outMax, "(TM)");
-			break;
-		case 0x00AE: /* R */
-			append_utf16_ascii(out, &pos, outMax, "(R)");
-			break;
-		case 0x00A9: /* C */
-			append_utf16_ascii(out, &pos, outMax, "(C)");
-			break;
-		case 0x2013:
-		case 0x2014:
-			if (pos + 1 < outMax)
-				out[pos++] = '-';
-			break;
-		case 0x2018:
-		case 0x2019:
-			if (pos + 1 < outMax)
-				out[pos++] = '\'';
-			break;
-		case 0x201C:
-		case 0x201D:
-			if (pos + 1 < outMax)
-				out[pos++] = '"';
-			break;
-		case 0x2026:
-			append_utf16_ascii(out, &pos, outMax, "...");
-			break;
-		default:
-			if (pos + 1 < outMax)
-				out[pos++] = c;
-			break;
+		if (replacement != NULL) {
+			append_utf16_ascii(out, &pos, outMax, replacement);
+			continue;
 		}
+
+		if (console_codepoint_should_drop(c))
+			continue;
+
+		if (pos + 1 < outMax)
+			out[pos++] = c;
 	}
 
 	out[pos] = 0;
+}
+
+void title_text_sanitize_utf8_for_console(char *text, size_t textSize)
+{
+	char sanitized[TITLE_SMDH_LONG_NAME_UTF8_MAX];
+	const uint8_t *in;
+	size_t outPos = 0;
+	size_t outMax;
+
+	if (text == NULL || textSize == 0)
+		return;
+
+	outMax = textSize < sizeof(sanitized) ? textSize : sizeof(sanitized);
+	sanitized[0] = '\0';
+	in = (const uint8_t *)text;
+
+	while (*in && outPos + 1 < outMax) {
+		const char *replacement;
+		uint32_t cp;
+		ssize_t consumed;
+
+		if (in[0] == '<' && (in[1] == 'b' || in[1] == 'B') && (in[2] == 'r' || in[2] == 'R') &&
+		    in[3] == '>') {
+			append_utf8_text(sanitized, &outPos, outMax, " ");
+			in += 4;
+			continue;
+		}
+
+		consumed = decode_utf8(&cp, in);
+		if (consumed <= 0) {
+			in++;
+			continue;
+		}
+
+		replacement = console_codepoint_replacement(cp);
+		if (replacement != NULL) {
+			append_utf8_text(sanitized, &outPos, outMax, replacement);
+		} else if (!console_codepoint_should_drop(cp)) {
+			append_utf8_codepoint(sanitized, &outPos, outMax, cp);
+		}
+
+		in += (size_t)consumed;
+	}
+
+	sanitized[outPos] = '\0';
+	strncpy(text, sanitized, textSize - 1);
+	text[textSize - 1] = '\0';
 }
 
 static void strip_truncated_utf8(char *out, size_t written, size_t maxLen)
@@ -123,7 +264,7 @@ static void strip_truncated_utf8(char *out, size_t written, size_t maxLen)
 
 static bool utf16_field_to_utf8(const u16 *in, size_t inMaxChars, char *out, size_t outSize)
 {
-	u16 sanitized[0x100];
+	u16 sanitized[0x200];
 	ssize_t bytes;
 	size_t outMax;
 
@@ -441,6 +582,10 @@ title_smdh_result_t title_smdh_load(u64 titleId, FS_MediaType media, title_smdh_
 		info->result = TITLE_SMDH_ERR_EMPTY;
 		return TITLE_SMDH_ERR_EMPTY;
 	}
+
+	title_text_sanitize_utf8_for_console(info->short_name, sizeof(info->short_name));
+	title_text_sanitize_utf8_for_console(info->long_name, sizeof(info->long_name));
+	title_text_sanitize_utf8_for_console(info->publisher, sizeof(info->publisher));
 
 	info->result = TITLE_SMDH_OK;
 	return TITLE_SMDH_OK;

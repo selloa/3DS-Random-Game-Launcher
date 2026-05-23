@@ -30,7 +30,7 @@ typedef struct {
 typedef struct {
 	u64 titleId;
 	FS_MediaType media;
-	char display_name[TITLE_SMDH_SHORT_NAME_UTF8_MAX];
+	char display_name[TITLE_SMDH_LONG_NAME_UTF8_MAX];
 	title_name_source_t name_source;
 	const char *catalog_name;
 	bool is_homebrew;
@@ -46,9 +46,10 @@ void title_picker_rebuild_pool(title_picker_pool_t *pool, const title_source_t *
 bool title_picker_pick_random(const title_picker_pool_t *pool, const title_source_t *titles, u32 titleCount,
 	u64 *outTitleId, FS_MediaType *outMedia, u32 *outPoolIndex);
 
-void title_picker_load_pick(u64 titleId, FS_MediaType media, bool include_homebrew, title_pick_t *pick);
+void title_picker_load_pick(u64 titleId, FS_MediaType media, bool include_homebrew, bool prefer_long_name,
+	title_pick_t *pick);
 
 void title_picker_resolve_display_name(u64 titleId, const title_smdh_info_t *smdh, const char *catalogName,
-	char *out, size_t outSize, title_name_source_t *outSource);
+	bool prefer_long_name, char *out, size_t outSize, title_name_source_t *outSource);
 
 #endif

@@ -23,14 +23,17 @@ typedef struct {
 
 typedef bool (*ui_filter_row_enabled_fn)(u32 row);
 typedef const char *(*ui_filter_row_label_fn)(u32 row);
+typedef bool (*ui_filter_row_is_action_fn)(u32 row);
 
 void ui_draw_header(void);
 void ui_draw_main_screen(const ui_view_t *view);
 
-void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on,
-	ui_filter_row_enabled_fn row_enabled, ui_filter_row_label_fn row_label);
+void ui_draw_filter_menu(u32 cursor, u32 row_count, u32 filters_on, u32 eligible_count,
+	ui_filter_row_enabled_fn row_enabled, ui_filter_row_label_fn row_label,
+	ui_filter_row_is_action_fn row_is_action);
 
-u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled);
+u32 ui_count_enabled_filters(u32 row_count, ui_filter_row_enabled_fn row_enabled,
+	ui_filter_row_is_action_fn row_is_action);
 
 void ui_draw_empty_pool_message(u32 sd_count, u32 nand_count, bool include_sd, bool include_nand,
 	bool suggest_sources);

@@ -46,4 +46,7 @@ void title_smdh_format_ratings(const title_smdh_info_t *info, char *buf, size_t 
 void title_smdh_format_region_lock(u32 regionLock, char *buf, size_t bufSize);
 void title_smdh_format_flags(u32 flags, char *buf, size_t bufSize);
 
+/// Normalize UTF-8 text for the 3DS top-screen console (in-place; may shrink or grow slightly).
+void title_text_sanitize_utf8_for_console(char *text, size_t textSize);
+
 #endif

@@ -9,22 +9,25 @@
 #include "title_smdh.h"
 #include "ui.h"
 
-#define FILTER_ROW_PATCHES 0
-#define FILTER_ROW_DLC 1
-#define FILTER_ROW_SYSTEM 2
+#define FILTER_ROW_NATIVE 0
+#define FILTER_ROW_VC 1
+#define FILTER_ROW_DSIWARE 2
 #define FILTER_ROW_DEMOS 3
-#define FILTER_ROW_DSIWARE 4
-#define FILTER_ROW_CONTENT 5
-#define FILTER_ROW_NATIVE 6
-#define FILTER_ROW_VC 7
+#define FILTER_ROW_CONTENT 4
+#define FILTER_ROW_DLC 5
+#define FILTER_ROW_PATCHES 6
+#define FILTER_ROW_SYSTEM 7
 #define FILTER_ROW_SD 8
 #define FILTER_ROW_NAND 9
-#define FILTER_ROW_HOMEBREW 10
-#define FILTER_ROW_COUNT 11
+#define FILTER_ROW_LONG_NAME 10
+#define FILTER_ROW_HOMEBREW 11
+#define FILTER_ROW_DEFAULTS 12
+#define FILTER_ROW_COUNT 13
 
 static bool g_include_homebrew = false;
 static bool g_include_sd = true;
 static bool g_include_nand = false;
+static bool g_prefer_long_name = true;
 static title_filter_options_t g_filters = { false, false, false, true, true, true, true, true };
 static u32 g_sd_title_count = 0;
 static u32 g_nand_title_count = 0;
@@ -101,6 +104,22 @@ static ui_view_t make_ui_view(const picked_view_t *view)
 	return ui;
 }
 
+static void apply_default_filter_settings(void)
+{
+	g_include_homebrew = false;
+	g_include_sd = true;
+	g_include_nand = false;
+	g_filters.include_patches = false;
+	g_filters.include_dlc = false;
+	g_filters.include_system = false;
+	g_filters.include_demos = true;
+	g_filters.include_dsiware = true;
+	g_filters.include_content_packs = true;
+	g_filters.include_native_apps = true;
+	g_filters.include_virtual_console = true;
+	g_prefer_long_name = true;
+}
+
 static void print_picked_view(const picked_view_t *view)
 {
 	ui_view_t ui = make_ui_view(view);
@@ -111,26 +130,28 @@ static void print_picked_view(const picked_view_t *view)
 static bool filter_row_enabled(u32 row)
 {
 	switch (row) {
-	case FILTER_ROW_PATCHES:
-		return g_filters.include_patches;
-	case FILTER_ROW_DLC:
-		return g_filters.include_dlc;
-	case FILTER_ROW_SYSTEM:
-		return g_filters.include_system;
-	case FILTER_ROW_DEMOS:
-		return g_filters.include_demos;
-	case FILTER_ROW_DSIWARE:
-		return g_filters.include_dsiware;
-	case FILTER_ROW_CONTENT:
-		return g_filters.include_content_packs;
 	case FILTER_ROW_NATIVE:
 		return g_filters.include_native_apps;
 	case FILTER_ROW_VC:
 		return g_filters.include_virtual_console;
+	case FILTER_ROW_DSIWARE:
+		return g_filters.include_dsiware;
+	case FILTER_ROW_DEMOS:
+		return g_filters.include_demos;
+	case FILTER_ROW_CONTENT:
+		return g_filters.include_content_packs;
+	case FILTER_ROW_DLC:
+		return g_filters.include_dlc;
+	case FILTER_ROW_PATCHES:
+		return g_filters.include_patches;
+	case FILTER_ROW_SYSTEM:
+		return g_filters.include_system;
 	case FILTER_ROW_SD:
 		return g_include_sd;
 	case FILTER_ROW_NAND:
 		return g_include_nand;
+	case FILTER_ROW_LONG_NAME:
+		return g_prefer_long_name;
 	case FILTER_ROW_HOMEBREW:
 		return g_include_homebrew;
 	default:
@@ -141,35 +162,38 @@ static bool filter_row_enabled(u32 row)
 static void toggle_filter_row(u32 row)
 {
 	switch (row) {
-	case FILTER_ROW_PATCHES:
-		g_filters.include_patches = !g_filters.include_patches;
-		break;
-	case FILTER_ROW_DLC:
-		g_filters.include_dlc = !g_filters.include_dlc;
-		break;
-	case FILTER_ROW_SYSTEM:
-		g_filters.include_system = !g_filters.include_system;
-		break;
-	case FILTER_ROW_DEMOS:
-		g_filters.include_demos = !g_filters.include_demos;
-		break;
-	case FILTER_ROW_DSIWARE:
-		g_filters.include_dsiware = !g_filters.include_dsiware;
-		break;
-	case FILTER_ROW_CONTENT:
-		g_filters.include_content_packs = !g_filters.include_content_packs;
-		break;
 	case FILTER_ROW_NATIVE:
 		g_filters.include_native_apps = !g_filters.include_native_apps;
 		break;
 	case FILTER_ROW_VC:
 		g_filters.include_virtual_console = !g_filters.include_virtual_console;
 		break;
+	case FILTER_ROW_DSIWARE:
+		g_filters.include_dsiware = !g_filters.include_dsiware;
+		break;
+	case FILTER_ROW_DEMOS:
+		g_filters.include_demos = !g_filters.include_demos;
+		break;
+	case FILTER_ROW_CONTENT:
+		g_filters.include_content_packs = !g_filters.include_content_packs;
+		break;
+	case FILTER_ROW_DLC:
+		g_filters.include_dlc = !g_filters.include_dlc;
+		break;
+	case FILTER_ROW_PATCHES:
+		g_filters.include_patches = !g_filters.include_patches;
+		break;
+	case FILTER_ROW_SYSTEM:
+		g_filters.include_system = !g_filters.include_system;
+		break;
 	case FILTER_ROW_SD:
 		g_include_sd = !g_include_sd;
 		break;
 	case FILTER_ROW_NAND:
 		g_include_nand = !g_include_nand;
+		break;
+	case FILTER_ROW_LONG_NAME:
+		g_prefer_long_name = !g_prefer_long_name;
 		break;
 	case FILTER_ROW_HOMEBREW:
 		g_include_homebrew = !g_include_homebrew;
@@ -182,46 +206,56 @@ static void toggle_filter_row(u32 row)
 static const char *filter_row_label(u32 row)
 {
 	switch (row) {
-	case FILTER_ROW_PATCHES:
-		return "Patches";
-	case FILTER_ROW_DLC:
-		return "DLC";
-	case FILTER_ROW_SYSTEM:
-		return "System";
-	case FILTER_ROW_DEMOS:
-		return "Demos";
-	case FILTER_ROW_DSIWARE:
-		return "DSiWare";
-	case FILTER_ROW_CONTENT:
-		return "Content";
 	case FILTER_ROW_NATIVE:
 		return "Native apps";
 	case FILTER_ROW_VC:
 		return "Virtual Console";
+	case FILTER_ROW_DSIWARE:
+		return "DSiWare";
+	case FILTER_ROW_DEMOS:
+		return "Demos";
+	case FILTER_ROW_CONTENT:
+		return "Content";
+	case FILTER_ROW_DLC:
+		return "DLC";
+	case FILTER_ROW_PATCHES:
+		return "Patches";
+	case FILTER_ROW_SYSTEM:
+		return "System";
 	case FILTER_ROW_SD:
 		return "SD titles";
 	case FILTER_ROW_NAND:
 		return "NAND titles";
+	case FILTER_ROW_LONG_NAME:
+		return "Long game name";
 	case FILTER_ROW_HOMEBREW:
-		return "Homebrew";
+		return "Unlisted only";
+	case FILTER_ROW_DEFAULTS:
+		return "Restore defaults";
 	default:
 		return "";
 	}
 }
 
-static void draw_filter_menu(u32 cursor)
+static bool filter_row_is_action(u32 row)
 {
-	u32 filters_on = ui_count_enabled_filters(FILTER_ROW_COUNT, filter_row_enabled);
-
-	ui_draw_filter_menu(cursor, FILTER_ROW_COUNT, filters_on, filter_row_enabled, filter_row_label);
+	return row == FILTER_ROW_DEFAULTS;
 }
 
-static bool run_filter_menu(void)
+static void draw_filter_menu(u32 cursor, const title_picker_pool_t *pool)
+{
+	u32 filters_on = ui_count_enabled_filters(FILTER_ROW_COUNT, filter_row_enabled, filter_row_is_action);
+
+	ui_draw_filter_menu(cursor, FILTER_ROW_COUNT, filters_on, pool->count, filter_row_enabled,
+		filter_row_label, filter_row_is_action);
+}
+
+static bool run_filter_menu(title_picker_pool_t *pool)
 {
 	u32 cursor = 0;
 	bool changed = false;
 
-	draw_filter_menu(cursor);
+	draw_filter_menu(cursor, pool);
 
 	while (aptMainLoop()) {
 		gspWaitForVBlank();
@@ -235,18 +269,50 @@ static bool run_filter_menu(void)
 
 		if (kDown & KEY_UP) {
 			cursor = (cursor + FILTER_ROW_COUNT - 1) % FILTER_ROW_COUNT;
-			draw_filter_menu(cursor);
+			draw_filter_menu(cursor, pool);
 		} else if (kDown & KEY_DOWN) {
 			cursor = (cursor + 1) % FILTER_ROW_COUNT;
-			draw_filter_menu(cursor);
+			draw_filter_menu(cursor, pool);
 		} else if (kDown & KEY_A) {
-			toggle_filter_row(cursor);
+			if (filter_row_is_action(cursor))
+				apply_default_filter_settings();
+			else
+				toggle_filter_row(cursor);
 			changed = true;
-			draw_filter_menu(cursor);
+			rebuild_eligible_pool(pool);
+			draw_filter_menu(cursor, pool);
 		}
 	}
 
 	return changed;
+}
+
+static bool run_empty_pool_screen(title_picker_pool_t *pool, bool suggest_sources)
+{
+	for (;;) {
+		ui_draw_empty_pool_message(g_sd_title_count, g_nand_title_count, g_include_sd, g_include_nand,
+			suggest_sources);
+
+		while (aptMainLoop()) {
+			gspWaitForVBlank();
+			gfxSwapBuffers();
+			hidScanInput();
+
+			u32 kDown = hidKeysDown();
+
+			if (kDown & KEY_START)
+				return false;
+
+			if (kDown & KEY_SELECT) {
+				if (run_filter_menu(pool)) {
+					rebuild_eligible_pool(pool);
+					if (pool->count > 0)
+						return true;
+				}
+				break;
+			}
+		}
+	}
 }
 
 static void wait_for_start_exit(void)
@@ -264,13 +330,6 @@ static void wait_for_start_exit(void)
 static bool pick_random_title(const title_picker_pool_t *pool, u64 *outTitleId, FS_MediaType *outMedia)
 {
 	return title_picker_pick_random(pool, g_active_titles, g_active_title_count, outTitleId, outMedia, NULL);
-}
-
-static void show_empty_pool(bool suggest_sources)
-{
-	ui_draw_empty_pool_message(g_sd_title_count, g_nand_title_count, g_include_sd, g_include_nand,
-		suggest_sources);
-	wait_for_start_exit();
 }
 
 int main()
@@ -318,14 +377,14 @@ int main()
 	rebuild_eligible_pool(&pool);
 
 	if (pool.count == 0) {
-		show_empty_pool(true);
-		goto cleanup_normal;
+		if (!run_empty_pool_screen(&pool, true))
+			goto cleanup_normal;
 	}
 
 randomPicker:
 	if (pool.count == 0) {
-		show_empty_pool(false);
-		goto cleanup_normal;
+		if (!run_empty_pool_screen(&pool, false))
+			goto cleanup_normal;
 	}
 
 	u64 randomTitle = 0;
@@ -342,7 +401,7 @@ randomPicker:
 		goto cleanup_normal;
 	}
 
-	title_picker_load_pick(randomTitle, randomMedia, g_include_homebrew, &view.pick);
+	title_picker_load_pick(randomTitle, randomMedia, g_include_homebrew, g_prefer_long_name, &view.pick);
 	print_picked_view(&view);
 
 	while (aptMainLoop()) {
@@ -368,18 +427,20 @@ randomPicker:
 		if (kDown & KEY_X) {
 			g_include_homebrew = !g_include_homebrew;
 			rebuild_eligible_pool(&pool);
-			if (!title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
+			if (pool.count == 0 || !title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
 				goto randomPicker;
-			title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, &view.pick);
+			title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, g_prefer_long_name,
+				&view.pick);
 			print_picked_view(&view);
 		}
 
 		if (kDown & KEY_SELECT) {
-			if (run_filter_menu()) {
+			if (run_filter_menu(&pool)) {
 				rebuild_eligible_pool(&pool);
-				if (!title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
+				if (pool.count == 0 || !title_picker_is_eligible(randomTitle, &g_filters, g_include_homebrew))
 					goto randomPicker;
-				title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, &view.pick);
+				title_picker_load_pick(randomTitle, view.pick.media, g_include_homebrew, g_prefer_long_name,
+				&view.pick);
 			}
 			print_picked_view(&view);
 		}
