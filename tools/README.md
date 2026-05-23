@@ -6,25 +6,67 @@ Tools and source for building installable `.cia` files. The main app build (`mak
 
 | Path | Purpose |
 |------|---------|
+| `tools/bin/bannertool.exe` | Creates `.bnr` banner and `.icn` icon files (v1.2.0) |
 | `tools/bin/makerom.exe` | Prebuilt CTR makerom (Windows) |
 | `tools/bin/ctrtool.exe` | Prebuilt ctrtool for inspecting NCCH/CIA |
 | `tools/3DS-Random-Game-Launcher.rsf` | RSF metadata for this title |
 | `makerom/` | makerom source (rebuild if needed) |
-| `bannertool/` | [diasurgical/bannertool](https://github.com/diasurgical/bannertool) submodule — creates `.bnr` / `.icn` |
+| `bannertool/` | [diasurgical/bannertool](https://github.com/diasurgical/bannertool) submodule — source for bannertool |
 | `CBuilder3DS/` | [slalomsquid/CBuilder3DS](https://github.com/slalomsquid/CBuilder3DS) submodule — reference CIA build workflow |
 
-## Submodule setup
+## bannertool setup
 
-After cloning, initialize submodules:
+Initialize the bannertool submodule (includes nested `buildtools`):
 
 ```bash
-git submodule update --init --recursive
+git submodule update --init --recursive bannertool
+```
+
+Verify: `git submodule status bannertool` should show a space (not `-`) before the commit hash, and `bannertool/buildtools/make_base` should exist.
+
+### Getting bannertool.exe
+
+**Option A — use the committed binary (recommended)**
+
+`tools/bin/bannertool.exe` is included in the repo. After submodule init, you're ready for CIA asset creation.
+
+**Option B — build from source**
+
+Requires a native Windows C/C++ toolchain (mingw-w64 `gcc`/`g++`). devkitARM alone is not enough — bannertool builds a PC host tool (`TARGET := NATIVE`).
+
+```bash
+cd bannertool
+make
+```
+
+Copy `output/windows-x86_64/bannertool.exe` to `tools/bin/`.
+
+**Option C — download official release**
+
+Download [bannertool v1.2.0](https://github.com/diasurgical/bannertool/releases/tag/1.2.0) (`bannertool.zip`), extract `windows-x86_64/bannertool.exe` to `tools/bin/`.
+
+**Option D — Docker**
+
+See [bannertool/README.md](../bannertool/README.md) for containerized builds.
+
+### Other submodules
+
+CBuilder3DS is separate — initialize when working on CIA packaging:
+
+```bash
+git submodule update --init CBuilder3DS
 ```
 
 ## Typical CIA workflow
 
 1. Build the ELF at repo root: `make` (or `build.bat release`)
-2. Create banner and icon with bannertool (see `bannertool/README.md`)
+2. Create banner and icon with bannertool:
+
+```bash
+tools/bin/bannertool.exe makebanner -i meta/banner.png -a audio.wav -o banner.bnr
+tools/bin/bannertool.exe makesmdh -s "Random Launcher" -l "3DS Random Game Launcher" -p "selloa" -i icon.png -o icon.icn
+```
+
 3. Package with makerom using the RSF file:
 
 ```bash
