@@ -1,0 +1,50 @@
+flowchart TB
+  subgraph you["What you work on"]
+    CODE["Your C code<br/>source/*.c"]
+    ICON["App icon<br/>icon.png"]
+    INFO["App name & description<br/>in the Makefile"]
+  end
+
+  subgraph once["Install once (devkitPro)"]
+    TOOLBOX["3DS homebrew toolbox<br/>compiler, libctru, build tools"]
+  end
+
+  subgraph build["Run one command"]
+    MAKE["make<br/>reads Makefile and builds everything"]
+  end
+
+  subgraph steps["What the build does — behind the scenes"]
+    COMPILE["1. Compile<br/>turn each .c file into machine code"]
+    LINK["2. Link<br/>combine code + libctru into one program"]
+    METADATA["3. Make metadata<br/>title, author, icon for the launcher"]
+    PACKAGE["4. Package<br/>wrap program + metadata together"]
+  end
+
+  subgraph files["Files that appear"]
+    ELF[".elf — the program<br/>for testing on an emulator or dev setup"]
+    SMDH[".smdh — launcher info<br/>name and icon Homebrew Launcher shows"]
+    DSX[".3dsx — the file you actually use<br/>program + launcher info in one file"]
+  end
+
+  subgraph sd["On your 3DS"]
+    SD["Copy .3dsx to SD card<br/>sdmc:/3ds/YourApp.3dsx"]
+    HB["Open Homebrew Launcher<br/>your app appears with its icon"]
+  end
+
+  CODE --> MAKE
+  ICON --> MAKE
+  INFO --> MAKE
+  TOOLBOX --> MAKE
+
+  MAKE --> COMPILE
+  COMPILE --> LINK
+  ICON --> METADATA
+  INFO --> METADATA
+  LINK --> ELF
+  METADATA --> SMDH
+  ELF --> PACKAGE
+  SMDH --> PACKAGE
+  PACKAGE --> DSX
+
+  DSX --> SD
+  SD --> HB

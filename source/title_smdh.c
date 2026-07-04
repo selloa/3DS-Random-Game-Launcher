@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #include "title_smdh.h"
 
 #include <3ds/util/utf.h>

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #include "ui.h"
 
 #include <stdio.h>
@@ -15,10 +18,11 @@
 #define UI_CONTROLS_ROW_FILTER_STATUS 25
 #define UI_CONTROLS_ROW_FILTER_ACTIONS 26
 #define UI_CONTROLS_ROW_FOOTER_GAP 27
-#define UI_CONTENT_ROW_TITLE 7
-#define UI_CONTENT_ROW_PUBLISHER 8
+#define UI_CONTENT_ROW_TITLE 6
+#define UI_CONTENT_ROW_PUBLISHER 7
 #define UI_CONTENT_ROW_GAP 9
 #define UI_CONTENT_ROW_ACTIONS 10
+#define UI_DETAILS_CONTENT_ROW 10
 #define UI_FIELD_LABEL_COLS 14
 #define UI_TECH_LABEL_COLS 18
 #define UI_FILTER_LABEL_COLS 16
@@ -311,6 +315,7 @@ static void print_dev_details_page(const ui_view_t *view)
 	snprintf(eula, sizeof(eula), "%u.%u", pick->smdh.eula_major, pick->smdh.eula_minor);
 	snprintf(streetpass, sizeof(streetpass), "%08lX", pick->smdh.cec_id);
 
+	printf("\x1b[%d;1H", UI_DETAILS_CONTENT_ROW);
 	print_section_header("Names", true);
 	print_field_inline("Source", name_source_label(pick->name_source));
 	if (pick->name_source == TITLE_NAME_SOURCE_CATALOG && pick->catalog_name != NULL)

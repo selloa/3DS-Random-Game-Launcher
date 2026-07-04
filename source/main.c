@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,8 +31,8 @@
 static bool g_include_homebrew = false;
 static bool g_include_sd = true;
 static bool g_include_nand = false;
-static bool g_prefer_long_name = true;
-static title_filter_options_t g_filters = { false, false, false, true, false, false, true, true };
+static bool g_prefer_long_name = false;
+static title_filter_options_t g_filters = { false, false, false, false, false, false, true, true };
 static u32 g_sd_title_count = 0;
 static u32 g_nand_title_count = 0;
 static u32 g_eligible_title_count = 0;

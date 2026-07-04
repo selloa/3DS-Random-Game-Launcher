@@ -1,0 +1,81 @@
+---
+title: 3DS Homebrew Coding (2026)
+---
+flowchart TB
+  subgraph PREREQ["Prerequisites"]
+    direction LR
+
+    subgraph PRE_COL1["On your PC"]
+      direction TB
+      PRE_DEV["devkitPro + devkitARM + libctru"]
+      PRE_MKE["make — devkitPro MSYS2 shell"]
+      PRE_DEV --> PRE_MKE
+    end
+
+    subgraph PRE_COL2["For .cia"]
+      direction TB
+      PRE_CIA_T["bannertool + makerom"]
+      PRE_OPT["Optional<br/>• image editor or script<br/>• banner artwork"]
+      PRE_CIA_T --> PRE_OPT
+    end
+
+    subgraph PRE_COL3["Testing"]
+      direction LR
+      PRE_3DS["On your 3DS<br/>• CFW — install .cia via FBI / UU<br/>• Homebrew Launcher — run .3dsx"]
+      PRE_CITRA["Citra<br/>• test .3dsx / .elf on PC<br/>• optional .cia install"]
+    end
+  end
+
+  subgraph ROW0[" "]
+    direction LR
+    CODE["Your C code<br/>source/*.c"]
+    ASSETS["Home Menu assets<br/>icon, banner image, startup sound"]
+  end
+
+  MAKE["make<br/>devkitPro / devkitARM"]
+
+  DSX[".3dsx<br/>program + launcher info"]
+
+  HBL["Homebrew Launcher<br/>copy to sdmc:/3ds/"]
+
+  CIABUILD["CIA packaging<br/>bannertool + makerom"]
+
+  CIA[".cia<br/>installable title"]
+
+  INSTALL["Install on 3DS<br/>FBI / Universal Updater"]
+
+  MENU["Home Menu<br/>like an eShop title"]
+
+  subgraph INTO3DSX[" "]
+    direction LR
+    SMDH[".smdh<br/>launcher name + icon"]
+    ELF[".elf<br/>the program"]
+  end
+
+  PRE_MKE ~~~ CODE
+  PRE_CIA_T ~~~ ASSETS
+
+  CODE --> MAKE
+
+  MAKE -->|"smdhtool"| SMDH
+  MAKE -->|"arm-none-eabi-gcc<br/>+ libctru"| ELF
+
+  SMDH -->|"3dsxtool"| DSX
+  ELF --> DSX
+
+  DSX --> HBL
+
+  ASSETS -->|"bannertool<br/>makebanner + makesmdh"| CIABUILD
+  ELF -->|"makerom<br/>uses .elf + .bnr + .icn"| CIABUILD
+  CIABUILD --> CIA
+  CIA --> INSTALL
+  INSTALL --> MENU
+
+  style ROW0 fill:none,stroke:none
+  style INTO3DSX fill:none,stroke:none
+
+  classDef buildTool fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+  classDef ciaTool fill:#ffedd5,stroke:#c2410c,color:#7c2d12
+
+  class MAKE,PRE_DEV,PRE_MKE buildTool
+  class CIABUILD,PRE_CIA_T ciaTool

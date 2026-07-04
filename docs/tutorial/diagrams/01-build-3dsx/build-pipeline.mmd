@@ -1,0 +1,47 @@
+flowchart TB
+  subgraph inputs["Project inputs"]
+    SRC["source/*.c, *.s, gfx, data"]
+    ICON["icon.png"]
+    META["Makefile: APP_TITLE, APP_DESCRIPTION, APP_AUTHOR"]
+    VERSION["VERSION file"]
+  end
+
+  subgraph makefile["Makefile (project root)"]
+    OUTER["Top-level make<br/>setup build/, invoke inner make"]
+    INNER["Inner make in build/<br/>compile + link targets"]
+  end
+
+  subgraph devkit["devkitARM rules"]
+    BASE["base_rules<br/>arm-none-eabi-gcc -c → *.o"]
+    RULES["3ds_rules<br/>link, smdh, 3dsx targets"]
+  end
+
+  subgraph artifacts["Artifacts at project root"]
+    ELF["TARGET.elf"]
+    SMDH["TARGET.smdh"]
+    DSX["TARGET.3dsx"]
+    DIST["dist/TARGET-vX.Y.Z.3dsx"]
+  end
+
+  SRC --> OUTER
+  ICON --> OUTER
+  META --> OUTER
+  VERSION --> META
+  OUTER --> INNER
+
+  INNER --> BASE
+  BASE -->|"$(CC) -c"| OFILES["*.o in build/"]
+  OFILES --> RULES
+
+  RULES -->|"$(LD) -specs=3dsx.specs $(OFILES) -lctru"| ELF
+  ICON --> RULES
+  META --> RULES
+  RULES -->|"smdhtool --create title desc author icon"| SMDH
+
+  ELF --> RULES
+  SMDH --> RULES
+  RULES -->|"3dsxtool elf 3dsx --smdh=..."| DSX
+
+  DSX -->|"copy-to-dist"| DIST
+  ELF -->|"copy-to-dist"| DIST
+  SMDH -->|"copy-to-dist"| DIST

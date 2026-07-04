@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #include "title_database.h"
 
 // Virtual Console title IDs from ghost-land/3dsdb virtual-console.json

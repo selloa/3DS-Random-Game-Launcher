@@ -3,7 +3,7 @@
 ## Overview
 The `main.c` file is the core of a Nintendo 3DS homebrew application that randomly selects and launches games from the user's installed game library. It provides an interactive interface for users to discover and play games they might not have tried otherwise.
 
-**Current picker policy (May 2026):** display names come from **SMDH first** (catalog DB fallback, then title ID hex). The random pool uses **category filters** (patches, DLC, system — off by default; demos, DSiWare, content packs — on by default) and a **catalog allowlist** when homebrew mode is off. Open **SELECT** for the filter menu; **L/R** pages show metadata for testing.
+**Current picker policy (May 2026):** display names come from **SMDH first** (catalog DB fallback, then title ID hex). The random pool uses **category filters** (patches, DLC, system, demos, DSiWare, content packs — off by default; native apps, Virtual Console — on by default) and a **catalog allowlist** when homebrew mode is off. Open **SELECT** for the filter menu; **L/R** pages show metadata for testing.
 
 ## Core Functionality
 
@@ -34,7 +34,7 @@ AM_GetTitleList(..., MEDIATYPE_NAND, ...);
 
 Before each pick, the app builds a pool of scanned titles that pass:
 
-1. **Category filters** (default: retail/VC applications `0x0000`; demos, DSiWare, content packs included; patches `0x000E`, DLC `0x008C`, system `0x0005`–`0x0009`, DLP child, certificate store excluded)
+1. **Category filters** (default: retail/VC applications `0x0000`; native apps and Virtual Console included; patches `0x000E`, DLC `0x008C`, system `0x0005`–`0x0009`, demos, DSiWare, content packs, DLP child, certificate store excluded)
 2. **Optional toggles** (SELECT menu): include patches, DLC, system, demos, DSiWare, content packs, native apps, or Virtual Console
 3. **Homebrew mode** (default OFF): only title IDs in `title_database.c` may be picked
 4. **Homebrew mode ON**: unknown IDs (not in catalog) may be picked; DB classifies them as homebrew

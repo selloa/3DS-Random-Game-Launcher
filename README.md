@@ -154,7 +154,9 @@ Started as a proof-of-concept; this fork adds SMDH title resolution, filtering, 
 
 MIT License — Copyright (c) 2025 selloa
 
-See [LICENSE](LICENSE) for the full text.
+See [LICENSE](LICENSE) for the full text. Source files are marked `SPDX-License-Identifier: MIT`.
+
+Third-party components (libctru, devkitPro toolchain) are documented in [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
 
 ---
 

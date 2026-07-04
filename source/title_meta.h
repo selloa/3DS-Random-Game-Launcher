@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #ifndef TITLE_META_H
 #define TITLE_META_H
 

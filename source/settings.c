@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 selloa
+
 #include "settings.h"
 
 #include <3ds.h>
@@ -104,11 +107,11 @@ void launcher_settings_apply_defaults(launcher_settings_t *settings)
 	settings->include_unlisted = false;
 	settings->include_sd = true;
 	settings->include_nand = false;
-	settings->prefer_long_name = true;
+	settings->prefer_long_name = false;
 	settings->filters.include_patches = false;
 	settings->filters.include_dlc = false;
 	settings->filters.include_system = false;
-	settings->filters.include_demos = true;
+	settings->filters.include_demos = false;
 	settings->filters.include_dsiware = false;
 	settings->filters.include_content_packs = false;
 	settings->filters.include_native_apps = true;

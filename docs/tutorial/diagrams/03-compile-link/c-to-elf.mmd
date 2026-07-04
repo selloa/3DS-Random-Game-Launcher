@@ -1,0 +1,63 @@
+---
+title: C Sources → ELF (devkitARM / libctru)
+---
+flowchart TB
+  subgraph DISCOVER["1 · Makefile discovers inputs"]
+    MK1["Top-level Makefile<br/>wildcard source/*.c → CFILES"]
+    MK2["Recursive make in build/<br/>VPATH finds sources, writes *.o + *.d"]
+  end
+
+  subgraph COMPILE["2 · Compile — one translation unit per .c file"]
+    direction TB
+    SRC["source/*.c<br/>main.c · ui.c · …"]
+    PP["Preprocessor<br/>#include · -D__3DS__ · -I libctru/include"]
+    CC["arm-none-eabi-gcc -c<br/>-march=armv6k · -ffunction-sections"]
+    OBJ["build/*.o<br/>relocatable ARM machine code + symbol table"]
+    SRC --> PP --> CC --> OBJ
+  end
+
+  subgraph HEADERS["What your #includes pull in"]
+    H1["Your headers<br/>ui.h · module.h"]
+    H2["libctru headers<br/>3ds.h → gfx · hid · fs · apt · …"]
+    H1 --> H2
+  end
+
+  subgraph LINK["3 · Link — arm-none-eabi-gcc (same binary as compile)"]
+    LD["Link command<br/>-specs=3dsx.specs $(OFILES) -lctru -lm -o app.elf"]
+    SPECS["3dsx.specs<br/>3dsx.ld memory map · 3dsx_crt0 startup · --gc-sections"]
+    ELF["app.elf<br/>single executable: code + data + debug symbols"]
+    LD --> SPECS --> ELF
+  end
+
+  subgraph LIBCTRUM["4 · libctru at link time (static library)"]
+    direction TB
+    ARCH["libctru.a prebuilt archive<br/>one .o per API module, linked on demand"]
+    CRT["3dsx_crt0 (from specs startfile)<br/>entry · heap setup · service bootstrap"]
+    APP["Your main() and all build/*.o"]
+    RUN["Runtime call chain on 3DS<br/>crt0 → __appInit → main() → __appExit"]
+    SVC["IPC wrappers to OS services<br/>GSP GPU · HID input · FS files · APT lifecycle · …"]
+    ARCH --> LD
+    CRT --> LD
+    APP --> LD
+    RUN --> SVC
+  end
+
+  subgraph GC["5 · Dead code elimination"]
+    GC1["-ffunction-sections puts each function in its own section"]
+    GC2["--gc-sections drops unreferenced sections from final ELF"]
+    GC1 --> GC2
+  end
+
+  MK1 --> MK2
+  MK2 --> SRC
+  PP -.-> H2
+  OBJ --> LD
+  GC2 -.-> ELF
+
+  classDef buildTool fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+  classDef libTool fill:#dcfce7,stroke:#16a34a,color:#14532d
+  classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#1f2937
+
+  class MK1,MK2,CC,LD buildTool
+  class H2,ARCH,CRT,SVC,RUN libTool
+  class OBJ,ELF artifact

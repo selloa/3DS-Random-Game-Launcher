@@ -28,7 +28,7 @@ SD Card Root/
 
 The 3DSX file is a standard homebrew executable that:
 - Scans your SD card for installed titles
-- Builds an eligible pool using category filters (patches/DLC/system off by default; demos/DSiWare/content/native/VC on by default)
+- Builds an eligible pool using category filters (patches/DLC/system/demos/DSiWare/content off by default; native apps/VC on by default)
 - Picks one at random from that pool
 - Shows the title name from **SMDH** (catalog or title ID as fallback)
 - Launches the selected title using 3DS chainloading

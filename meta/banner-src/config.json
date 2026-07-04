@@ -30,7 +30,7 @@
       "align_white_to": { "y": 46 }
     },
     "title": {
-      "lines": ["3DS Random", "Title Picker"],
+      "lines": ["3DS Random", "Game Launcher"],
       "color": "#FF5D00",
       "font": {
         "family": "Arial Bold",
@@ -69,8 +69,7 @@
     },
     "cia-banner": {
       "path": "output/cia-banner.png",
-      "scale": 1,
-      "title_lines": ["3DS Random", "Game Launcher"]
+      "scale": 1
     },
     "banner-large": {
       "path": "output/banner-large.png",

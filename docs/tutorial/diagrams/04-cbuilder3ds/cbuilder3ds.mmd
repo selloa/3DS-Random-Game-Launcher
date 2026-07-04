@@ -1,0 +1,62 @@
+---
+title: What CBuilder3DS Does
+---
+flowchart TB
+  subgraph IN["You provide"]
+    direction LR
+    IN_C["C source<br/>source/*.c · headers"]
+    IN_A["Assets<br/>banner.png · icon.png · audio.wav"]
+  end
+
+  PREREQ["devkitPro + devkitARM + libctru<br/>installed separately — not bundled"]
+
+  CB(["CBuilder3DS<br/>──────────────<br/>all-in-one project template<br/>Makefile · build.bat · template.rsf<br/>ships bannertool + makerom"])
+
+  subgraph ROW["Orchestrates — does not compile itself"]
+    direction LR
+    S1["① make<br/>arm-none-eabi-gcc + libctru"]
+    S2["② bannertool<br/>.bnr + .icn"]
+    S3["③ makerom<br/>+ template.rsf"]
+  end
+
+  subgraph OUT["Outputs"]
+    direction LR
+    O_ELF[".elf"]
+    O_3DSX[".3dsx"]
+    O_CIA[".cia"]
+    O_3DS[".3ds"]
+  end
+
+  NOT["Not a compiler · not libctru<br/>optional if you maintain your own Makefile"]
+
+  IN_C --> CB
+  IN_A --> CB
+  PREREQ -.-> CB
+
+  CB --> S1
+  CB --> S2
+  CB --> S3
+
+  S1 --> O_ELF
+  S1 --> O_3DSX
+  S2 --> S3
+  S1 --> S3
+  S3 --> O_CIA
+  S3 --> O_3DS
+
+  CB -.-> NOT
+
+  IN_C ~~~ IN_A
+  S1 ~~~ S2
+  S2 ~~~ S3
+  CB ~~~ ROW
+
+  classDef cbuilder fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+  classDef buildTool fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+  classDef packTool fill:#ffedd5,stroke:#c2410c,color:#7c2d12
+  classDef note fill:#f3f4f6,stroke:#9ca3af,color:#374151
+
+  class CB cbuilder
+  class S1 buildTool
+  class S2,S3 packTool
+  class NOT note

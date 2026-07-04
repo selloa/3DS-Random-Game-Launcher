@@ -19,6 +19,8 @@ Curated links where **3DS Random Game Launcher** is listed, discussed, or refere
 - [Maxquaza — *Nintendo 3DS Hacks You Should Try!* @ 7:26](https://youtu.be/rdoZhKAb3rM?t=446) — mentions this app
 - [beachballs — *best homebrew 3ds apps 2026* @ 3:00](https://youtu.be/MR7o_fKnwHA?t=180) — covers [einso's original](https://github.com/einso/3ds-randomtitlepicker)
 
+https://youtu.be/KsNIZvNx3Kg?si=5VVarkaVRNUjNTq7&t=132
+
 ## Community
 
 - [GBATemp release thread](https://gbatemp.net/threads/3ds-random-game-launcher-finally-something-to-solve-the-what-should-i-play-problem.675053/)

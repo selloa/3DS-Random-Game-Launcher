@@ -41,3 +41,8 @@ source/title_database.c.backup_*
 # Generated scratch output (committed copies live in meta/)
 meta/banner-src/output/
 
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
